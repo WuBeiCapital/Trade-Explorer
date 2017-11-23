@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="wordTool">
+      <UniqueIdentifier>{d6582f55-574c-4e71-86fe-8f428f29ddb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SQL">
+      <UniqueIdentifier>{71726371-1783-46fd-a9ae-8a4e980dbd72}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BasicTools.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Clear.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="EnvironmentManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MArchive.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MBasic.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MBasicExport.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Print.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceHandle.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Serialize.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Transition.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WordTool\CreatePic.cpp">
+      <Filter>wordTool</Filter>
+    </ClCompile>
+    <ClCompile Include="WordTool\global.cpp">
+      <Filter>wordTool</Filter>
+    </ClCompile>
+    <ClCompile Include="WordTool\IniFileReadWrit.cpp">
+      <Filter>wordTool</Filter>
+    </ClCompile>
+    <ClCompile Include="WordTool\msword9.cpp">
+      <Filter>wordTool</Filter>
+    </ClCompile>
+    <ClCompile Include="WordTool\MsWordTool.cpp">
+      <Filter>wordTool</Filter>
+    </ClCompile>
+    <ClCompile Include="WordTool\MsWordToolDecorator.cpp">
+      <Filter>wordTool</Filter>
+    </ClCompile>
+    <ClCompile Include="SQL\CppSQLite3.cpp">
+      <Filter>SQL</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="MBasic.def">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="res\MBasic.rc2">
+      <Filter>资源文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BasicTools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Clear.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="EnvironmentManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MArchive.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MBasicEnum.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MBasicExport.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MBasicInc.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MBasicMacro.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Print.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceHandle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Serialize.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Transition.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WordTool\CreatePic.h">
+      <Filter>wordTool</Filter>
+    </ClInclude>
+    <ClInclude Include="WordTool\global.h">
+      <Filter>wordTool</Filter>
+    </ClInclude>
+    <ClInclude Include="WordTool\IniFileReadWrit.h">
+      <Filter>wordTool</Filter>
+    </ClInclude>
+    <ClInclude Include="WordTool\msword9.h">
+      <Filter>wordTool</Filter>
+    </ClInclude>
+    <ClInclude Include="WordTool\MsWordTool.h">
+      <Filter>wordTool</Filter>
+    </ClInclude>
+    <ClInclude Include="WordTool\MsWordToolDecorator.h">
+      <Filter>wordTool</Filter>
+    </ClInclude>
+    <ClInclude Include="SQL\CppSQLite3.h">
+      <Filter>SQL</Filter>
+    </ClInclude>
+    <ClInclude Include="SQL\sqlite3.h">
+      <Filter>SQL</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MBasic.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+</Project>
