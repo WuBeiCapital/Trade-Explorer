@@ -48,8 +48,8 @@ public:
 	BOOL Select();
 	BOOL CreateA2HKList();
 	afx_msg void OnBnClickedBtnImport();
-	afx_msg void OnBnClickedBtnExport();
-	afx_msg void OnBnClickedButton1();
+	afx_msg void OnBnUpdateA2HKData();
+	afx_msg void OnBnCreateA2HKList();
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnCbnSelchangeCmbState();
 };

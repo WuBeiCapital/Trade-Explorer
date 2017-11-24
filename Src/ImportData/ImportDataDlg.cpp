@@ -73,8 +73,8 @@ BEGIN_MESSAGE_MAP(CImportDataDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BTN_Import, &CImportDataDlg::OnBnClickedBtnImport)
-	ON_BN_CLICKED(IDC_BTN_Export, &CImportDataDlg::OnBnClickedBtnExport)
-	ON_BN_CLICKED(IDC_BUTTON1, &CImportDataDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BTN_Export, &CImportDataDlg::OnBnUpdateA2HKData)
+	ON_BN_CLICKED(IDC_BUTTON1, &CImportDataDlg::OnBnCreateA2HKList)
 	ON_BN_CLICKED(IDC_BUTTON2, &CImportDataDlg::OnBnClickedButton2)
 	ON_CBN_SELCHANGE(IDC_CMB_STATE, &CImportDataDlg::OnCbnSelchangeCmbState)
 END_MESSAGE_MAP()
@@ -285,50 +285,22 @@ CString CImportDataDlg::GetInsertSqlString(CArray<CStockData>& arRowData,const C
 
 void CImportDataDlg::OnBnClickedBtnImport()
 {
-	// TODO: Add your control notification handler code here
-	//CreateA2HKList();
+	// TODO: Add your control notification handler code here	
 	Select();//!
-	//GetDataA2HK();
+	
 }
 
-void CImportDataDlg::OnBnClickedBtnExport()
+void CImportDataDlg::OnBnUpdateA2HKData()
 {
 	// TODO: Add your control notification handler code here
+	GetDataA2HK();
 }
 
-void CImportDataDlg::OnBnClickedButton1()
+void CImportDataDlg::OnBnCreateA2HKList()
 {
 	// TODO: Add your control notification handler code here
 	//!
-	//CString  strFilePath = strFilePath = _T("E:\\Code\\SVN_UpDataHK\\Data\\WuGong.mtlwg");//sgt2017.hk2sz  WuGong.mtlwg sgt2017.hk2sz
-	//CppSQLite3DB db;
-	//db.open(strFilePath);
-	//if(!db.tableExists(L"WuGong"))
-	//{
-	//	return ;
-	//}
-	//CSqlStringCreator sqlcreator (SQLOT_DELETE,L"WuGong");
-	//sqlcreator.AddCondition(CString(lpcsSystem),0);
-	//db.execDML(sqlcreator.getsqlstring());
-
-	////!再将内存数据存到数据库:
-	//std::map<CString,CStockData*>::iterator p;
-	//CStockData * pConcrete = NULL;
-	//CString strFind;
-	//UINT nID = db.execScalar(sqlcreator.getMaxFieldSqlString(CString(lpcsID)));
-	////!
-	//db.execDML(L"begin transaction;");
-	//std::map<CString,CStockData*> mapStockDatas;
-	//for( p=mapStockDatas.begin();p!=mapStockDatas.end();++p)
-	//{
-	//	pConcrete = p->second;
-	//	++nID;
-	//	pConcrete->SetID(nID);
-	//	strFind.Format(_T("ID = %d"), pConcrete->GetID());
-	//	db.execDML(GetInsertSqlString(pConcrete));
-	//}
-	//db.execDML(L"commit transaction;");
-	//db.close();
+	CreateA2HKList();	
 }
 
 
