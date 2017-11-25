@@ -36,6 +36,7 @@ protected:
 	HICON m_hIcon;
 
 	CString GetDataPath();
+	CString GetDataHistoryPath();
 	
 	// 產生的訊息對應函式
 	virtual BOOL OnInitDialog();

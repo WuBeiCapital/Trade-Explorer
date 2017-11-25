@@ -286,8 +286,7 @@ CString CImportDataDlg::GetInsertSqlString(CArray<CStockData>& arRowData,const C
 void CImportDataDlg::OnBnClickedBtnImport()
 {
 	// TODO: Add your control notification handler code here	
-	Select();//!
-	
+	Select();//!	
 }
 
 void CImportDataDlg::OnBnUpdateA2HKData()
@@ -557,6 +556,27 @@ CString CImportDataDlg::GetDataPath()
 
 	return strPath;
 }
+CString CImportDataDlg::GetDataHistoryPath()
+{
+	CString strPath=GetSystemPath();
+	int index=strPath.Find(_T("Bin"));
+	if(index!=-1)
+	{//!		
+		strPath=strPath.Left(index);
+		strPath+=_T("Data\\AHistory2017.db");
+	}
+	else
+	{
+		index=strPath.Find(_T("bin"));
+		if(index!=-1)
+		{
+			strPath=strPath.Left(index);
+			strPath+=_T("Data\\AHistory2017.db");
+		}
+	}
+
+	return strPath;
+}
 
 BOOL CImportDataDlg::GetDataA2HK()//
 {//!
@@ -568,7 +588,7 @@ BOOL CImportDataDlg::GetDataA2HK()//
 		return ret;
 	}
 
-	CString strPath=_T("D:\\AHistory2017.db");
+	CString strPath=GetDataHistoryPath();//_T("D:\\AHistory2017.db");
 	SQLite sqlite; 
     // 打开或创建数据库
     //******************************************************  
@@ -613,7 +633,7 @@ BOOL CImportDataDlg::GetDataA2HK()//
 		//!获取行情数据
 		DailyBar *dbar = nullptr;
 		int count = 0;//,SZSE.000001	
-		ret = gm_md_get_dailybars((const char*)pstr,"2017-01-01", "2017-11-21",&dbar, &count);
+		ret = gm_md_get_dailybars((const char*)pstr,"2017-01-01", "2017-11-24",&dbar, &count);
 		delete pstr;
 		pstr=NULL;
 
@@ -629,7 +649,7 @@ BOOL CImportDataDlg::GetDataA2HK()//
 		index=strName.Find(_T("."));
 		strName=strName.Right(strName.GetLength()-1-index);
 		strName=_T("A")+strName;
-	
+		//!先查找
 		CString sql = _T("CREATE TABLE [")+strName+_T("] (")+
 			 _T("[data] NVARCHAR(20),")+
 			 _T("[open] REAL,")+
