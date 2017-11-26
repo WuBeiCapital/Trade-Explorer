@@ -941,4 +941,335 @@ void CImportDataDlg::OnCbnSelchangeCmbState()
 void CImportDataDlg::OnBnClickedBtnAnasy()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	//!
+	CString strPath=GetDataPath();
+    SQLite sqlite;  
+    // 打开或创建数据库
+    //******************************************************  
+    if(!sqlite.Open(strPath))  
+    {  
+       // _tprintf(_T("%s\n"),sqlite.GetLastErrorMsg());  
+		strPath+=_T("_文件打开错误!");
+		AfxMessageBox(strPath);
+        return 0;  
+    } 
+	//!获取列表
+	TCHAR sql[512] = {0}; 
+    memset(sql,0,sizeof(sql));  
+	/////////////////////////////////////////////////////////////////////////////////////////
+	//!策略//////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////
+	double dFactor=0.01;
+	//!
+	UINT uTimeContinue=3;//!连续
+	BOOL bStateType=FALSE;//!TRUE，增仓；FALSE，减仓
+	UINT bTimeType=0;//!0、天；1、周；2、月
+
+	Dlg2Data();	
+	//!
+	uTimeContinue=m_uTime;
+
+	switch(m_uState)
+	{
+		case 0:
+			bStateType=FALSE;
+			break;
+		case 1:
+			bStateType=TRUE;
+			break;
+		default:
+			break;
+	}
+	//!
+	switch(m_uTimePro)
+	{
+		case 0:
+			bTimeType=0;
+			break;
+		case 1:
+			bTimeType=1;
+			break;
+		case 2:
+			bTimeType=2;
+			break;
+		default:
+			break;
+	}
+	//!
+	/////////////////////////////////////////////////////////////////////////////////////////
+	//分解策略////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////
+	//!1、解读时间；2、需要搜索的表名
+	SYSTEMTIME sys; 
+	GetLocalTime(&sys);	
+	vector<CString> vctList;
+	int y=sys.wYear,m=sys.wMonth, d=sys.wDay;
+
+	UINT uW=6;
+	CString strTmp,strName;
+	switch(bTimeType)
+	{
+		case 0://day
+			for(int i=0;i <uTimeContinue+1;++i)
+			{//!
+				strTmp=_T("");
+				strName=_T("");		
+				do
+				{//!		
+					if(d>1)
+					{//!
+						d-=1;
+					}
+					else
+					{//!
+						if(m>1)
+						{
+							m-=1;
+							d=daysOfMonth(y,m);
+						}
+						else
+						{			
+							y-=1;
+							m=12;
+							d=daysOfMonth(y,m);
+						}
+					}
+					uW=CaculateWeekDay(y,m,d);
+				}while(uW>5);
+
+				strName=GetTimeString(y,m,d);
+				strName=_T("A")+strName;
+				vctList.push_back(strName);
+			}
+			break;
+        case 1://week
+			//！
+			for(int i=0;i <uTimeContinue+1;++i)
+			{//!
+				strTmp=_T("");
+				strName=_T("");		
+				
+				uW=CaculateWeekDay(y,m,d);
+				if(uW>=5)
+				{
+					//!调整到本周五
+					d-=uW-5;
+				}
+				else
+				{
+					//!调整到上周五
+					d-=uW+2;
+				}
+				//！
+				if(d<0)
+				{//!
+					if(m>1)
+					{
+						m-=1;
+						d=daysOfMonth(y,m)+d;
+					}
+					else
+					{			
+						y-=1;
+						m=12;
+						d=daysOfMonth(y,m)+d;
+					}
+				}					
+				//uW=CaculateWeekDay(y,m,d);
+				strName=GetTimeString(y,m,d);
+				strName=_T("A")+strName;
+				vctList.push_back(strName);
+				d-=7;
+			}
+			break;
+		default:
+			break;
+	}	
+	_ASSERTE(vctList.size());
+	//！用最近一份数据建立比较样本
+	double dFactor,dFactorTmp;
+	CString strSql;
+	//strTmp.Format(_T("%d"),uID);
+	strSql=_T("select * from ");
+	strSql+=vctList.at(0);
+	//strSql+=_T(" where id = ")+strTmp;
+	SQLiteDataReader Reader = sqlite.ExcuteQuery(strSql); 
+	map<UINT,double> mapList;
+	UINT uID,uNumber;
+	while(Reader.Read()) 
+    {  
+		uID=Reader.GetInt64Value(0);	
+		dFactor=Reader.GetFloatValue(3);	
+		mapList[uID]=dFactor;
+    }  
+    Reader.Close();
+	//！用比较样本 去遍历符合条件的表，记录符合策略的ID；
+	UINT uCount=0;
+	vector<UINT> vctIDs;	
+	for(map<UINT,double>::iterator p=mapList.begin();p!=mapList.end();++p)
+	{//!
+		uCount=0;
+		uID=(*p).first;
+		dFactor=(*p).second;
+		for(vector<CString>::iterator pIt=vctList.begin(); pIt!=vctList.end();++pIt)
+		{
+			strTmp.Format(_T("%d"),uID);
+			strSql=_T("select * from ");
+			strSql+=(*pIt);
+			strSql+=_T(" where id = ")+strTmp;
+			//!
+			SQLiteDataReader Reader = sqlite.ExcuteQuery(strSql);	
+			while(Reader.Read()) 
+			{  	
+				dFactorTmp=Reader.GetFloatValue(3);
+				if(bStateType)//!
+				{
+					if(dFactorTmp < dFactor)
+						uCount++;					
+				}
+				else
+				{
+					if(dFactorTmp > dFactor)
+						uCount++;			
+				}
+				dFactor=dFactorTmp;
+			} 
+			Reader.Close();
+		}
+		if(uCount==uTimeContinue)
+			vctIDs.push_back(uID);
+	}
+	//!	
+	//！用符合策略的ID，去获取最新数据，建立数据集；
+	map<UINT,vector<CStockData>> mapDatas;
+	for(vector<UINT>::iterator pIt=vctIDs.begin(); pIt!=vctIDs.end();++pIt)
+	{
+		uID=(*pIt);
+		vector<CStockData> vctstockDatas;
+		for(vector<CString>::iterator pIt=vctList.begin(); pIt!=vctList.end();++pIt)
+		{
+			strTmp.Format(_T("%d"),uID);
+			strSql=_T("select * from ");
+			strSql+=(*pIt);
+			strSql+=_T(" where id = ")+strTmp;
+			//!
+			SQLiteDataReader Reader = sqlite.ExcuteQuery(strSql);	
+			while(Reader.Read()) 
+			{  		
+				CStockData tmp;
+				tmp.SetCode(Reader.GetInt64Value(0));
+				tmp.SetName(Reader.GetStringValue(1));
+				tmp.SetCount(Reader.GetInt64Value(2));
+				tmp.SetFactor(Reader.GetFloatValue(3));		
+				vctstockDatas.push_back(tmp);
+			} 
+			Reader.Close();
+		}
+		mapDatas[uID]=vctstockDatas;
+	}  
+	// 关闭数据库  
+    sqlite.Close(); 
+
+	//!输出符合策略的数据集；
+	strName=GetTimeString(sys.wYear,sys.wMonth,sys.wDay);	
+	switch(bTimeType)
+	{
+		case 0:
+			strTmp.Format(_T("北上资金连续%d日"),uTimeContinue);
+			break;
+		case 1:
+			strTmp.Format(_T("北上资金连续%d周"),uTimeContinue);
+			break;
+		case 2:
+			strTmp.Format(_T("北上资金连续%d月"),uTimeContinue);
+			break;
+		default:
+			break;
+	}		
+	if(bStateType)
+	{//!
+		strTmp+=_T("增仓");
+	}
+	else
+	{
+		strTmp+=_T("减仓");
+	}
+	strName=strTmp+_T("_")+strName;
+	//!
+	CString strFileName=strName;
+	CFileDialog dlgsave(FALSE,NULL,strFileName,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("Excel Files(*.xlsx)|*.xlsx|Excel Files(*.xls)|*.xls|All Files (*.*)|*.*||"));  
+	if(dlgsave.DoModal() == IDOK)  
+	{  
+		CXLControl* pCXLControl = new CXLControl; 
+
+		pCXLControl->NewXL();//创建表格
+		strFileName =  dlgsave.GetPathName(); 
+
+		int nExcelCol = 0;
+		int nExcelRow = 1;
+
+		pCXLControl->SetXL(nExcelRow,0,lpcsCode);
+		pCXLControl->SetXL(nExcelRow,1,lpcsName);
+		pCXLControl->SetXL(nExcelRow,2,lpcsCount);
+		pCXLControl->SetXL(nExcelRow,3,lpcsFactor);
+		pCXLControl->SetXL(nExcelRow++,4,lpcsChange);
+		for(map<UINT,vector<CStockData>>::iterator p=mapDatas.begin();p!=mapDatas.end();++p,++nExcelRow)  
+		{ 	
+			vector<CStockData> vctstockDatas=(*p).second;
+			CStockData tmp;
+			if(bStateType)
+			{
+				tmp=vctstockDatas.at(0);
+			}
+			else
+			{
+				tmp=vctstockDatas.at(vctstockDatas.size()-1);
+			}		
+			//名称
+			strTmp.Format(_T("%d"),(long)tmp.GetCode());
+			pCXLControl->SetXL(nExcelRow,0,strTmp);
+
+			pCXLControl->SetXL(nExcelRow,1,tmp.GetName());
+
+			strTmp.Format(_T("%d"),(long)tmp.GetCount());
+			pCXLControl->SetXL(nExcelRow,2,strTmp);
+
+			double dFactor=tmp.GetFactor()*100;
+			strTmp.Format(_T("%.2f"),dFactor);
+			strTmp+=_T("%");
+			pCXLControl->SetXL(nExcelRow,3,strTmp);
+
+			double dChange=(vctstockDatas.at(0).GetFactor()-vctstockDatas.at(vctstockDatas.size()-1).GetFactor());
+			strTmp.Format(_T("%.2f"),dChange*100);
+			strTmp+=_T("%");
+			pCXLControl->SetXL(nExcelRow,4,strTmp);		
+		}		
+		pCXLControl->SetCellWidth(0,4,10);//设置列宽
+		pCXLControl->SetHoriAlign(1,0,nExcelRow,4,1);//设置单元格水平对齐方式
+		pCXLControl->SetFonts(2,0,nExcelRow,4,12,NULL,1,FALSE);//设置字体
+		pCXLControl->SetFonts(0,0,0,4,16,NULL,1,FALSE);//设置字体
+		pCXLControl->SetFonts(1,0,1,4,12,NULL,1,FALSE);//设置字体
+		if(bStateType)
+			pCXLControl->SetCellColor(1,0,1,4,3);//设置单位颜色为绿色 0无 1 黑 2白3红 4绿
+		else
+			pCXLControl->SetCellColor(1,0,1,4,4);//设置单位颜色为绿色 0无 1 黑 2白3红 4绿
+
+		pCXLControl->SetFonts(1,0,1,4,10,NULL,1,TRUE);//设置表头文字加粗
+		pCXLControl->SetBorders(1,0,nExcelRow-1,4,1);//设置显示网格线
+
+		strTmp.Format(_T(":总计%d只个股"),mapDatas.size());
+		strTmp=strName+strTmp;
+		pCXLControl->SetXL(0,0,strTmp);
+		pCXLControl->SetXL(++nExcelRow,0,_T("附注:"));
+		pCXLControl->SetXL(++nExcelRow,0,_T("1、连续多日指连续多个交易日;"));
+		pCXLControl->SetXL(++nExcelRow,0,_T("2、连续多周、月均指连续多个自然周、月;"));
+		pCXLControl->SetXL(++nExcelRow,0,_T("3、统计结果仅供参考，不作为操作依据。"));
+
+		pCXLControl->SetSheetName(strName);//设置sheet表名称
+		pCXLControl->SaveAs(strFileName);//另存为
+
+		pCXLControl->TerminateExcel();//终止excel
+		_DELPTR(pCXLControl);
+		AfxMessageBox(_T("数据导出完毕!"));
+	}
 }
