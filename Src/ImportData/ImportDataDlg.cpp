@@ -75,8 +75,8 @@ BEGIN_MESSAGE_MAP(CImportDataDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_Import, &CImportDataDlg::OnBnClickedBtnImport)
 	ON_BN_CLICKED(IDC_BTN_Export, &CImportDataDlg::OnBnUpdateA2HKData)
 	ON_BN_CLICKED(IDC_BUTTON1, &CImportDataDlg::OnBnCreateA2HKList)
-	ON_BN_CLICKED(IDC_BUTTON2, &CImportDataDlg::OnBnClickedButton2)
 	ON_CBN_SELCHANGE(IDC_CMB_STATE, &CImportDataDlg::OnCbnSelchangeCmbState)
+	ON_BN_CLICKED(IDC_BTN_ANASY, &CImportDataDlg::OnBnClickedBtnAnasy)
 END_MESSAGE_MAP()
 
 
@@ -176,113 +176,6 @@ HCURSOR CImportDataDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-BOOL CImportDataDlg::IsFindTagFromExcel(CXLControl* pCXLControl,const CString strTag,int& nReturnRow,int& nReturnCol)//从excel文件中查找标记Force
-{
-	nReturnRow = -1;
-	nReturnCol = -1;
-	CString strFindTag = strTag;
-	strFindTag.MakeUpper();
-
-	int k = 0;
-	while(k <= 100)//左上三角遍历方式
-	{
-		for (int nRow = 2*k; nRow <= (2*k+1) ; nRow++)//2个行单元格
-		{
-			int nCurrentRow = nRow;
-			for (int nCol = 0 ; nCol <= nRow ; nCol++)
-			{
-				CString strCell = pCXLControl->GetXL(nCurrentRow,nCol);
-				strCell.TrimRight();
-				if(!strCell.IsEmpty()) 
-				{
-					strCell.MakeUpper();
-					if(strCell.Find(strFindTag) >= 0 )
-					{
-						nReturnRow = nCurrentRow;
-						nReturnCol = nCol;
-						return TRUE;
-					}
-					nCurrentRow--;
-				}
-				else
-					nCurrentRow--;
-				continue;
-			}
-		}
-		k++;
-	}
-	return FALSE;
-}
-
-BOOL CImportDataDlg::IsGetRowDataFromExcel(CXLControl* pCXLControl,CArray<CStockData>& arRowData,int nRow,int nCol1,int nCol2)
-{	
-	if(nRow < 0 || nCol1 < 0 || (nCol2 < nCol1 && nCol1 >=0)) return FALSE;
-
-//	stringstream ss("1.23456e+003");
-// double d;
-// ss >> d; 
-
-//double   d   =   0.0178; 
-// CString   str; 
-// str.Format( "%e ",d);
-
-	CStockData stockData;
-	for(int nCol = nCol1;nCol <= nCol2;nCol++)
-	{
-		CString strCell = pCXLControl->GetXL(nRow,nCol);
-		strCell.TrimRight();//剔除末端空格
-		
-		switch(nCol-nCol1)
-		{
-			case COL_CODE:
-				stockData.SetCode(_ttol(strCell));
-				break;
-			case COL_NAME:
-				stockData.SetName(strCell);
-				break;
-			case COL_COUNT:
-				{					
-					stringstream ss;
-					ss<<strCell;
-					DWORD dCount;
-					ss >> dCount; 
-					stockData.SetCount(dCount);
-					break;
-				}
-			case COL_FACTOR:
-				stockData.SetFactor(_ttof(strCell));
-				break;
-			default:
-				break;
-		}		
-	}
-	if(!stockData.IsEmpty())
-	arRowData.Add(stockData);
-
-	if(arRowData.GetSize() == 0) return FALSE;
-	if(arRowData.GetSize() > 0 && /*arRowData.GetAt(0)*/stockData.IsEmpty()) return FALSE;
-
-	return TRUE;
-}
-
-CString CImportDataDlg::GetInsertSqlString(CArray<CStockData>& arRowData,const CString& strName)
-{
-	CString strsql = _T("");
-
-	/*CSqlStringCreator insertsql(SQLOT_INSERT,strName);
-	for(int i=0; i<arRowData.GetCount();++i)
-	{
-		insertsql.AddParameter(CString(lpcsCode),(UINT)arRowData.GetAt(i).GetCode());
-		insertsql.AddParameter(CString(lpcsName),arRowData.GetAt(i).GetName());
-		insertsql.AddParameter(CString(lpcsCount),(UINT)arRowData.GetAt(i).GetCount());
-		insertsql.AddParameter(CString(lpcsFactor),arRowData.GetAt(i).GetFactor());
-	}
-
-	strsql = insertsql.getsqlstring();*/
-
-	return strsql;
-}
-
 void CImportDataDlg::OnBnClickedBtnImport()
 {
 	// TODO: Add your control notification handler code here	
@@ -300,91 +193,6 @@ void CImportDataDlg::OnBnCreateA2HKList()
 	// TODO: Add your control notification handler code here
 	//!
 	CreateA2HKList();	
-}
-
-
-void CImportDataDlg::OnBnClickedButton2()
-{
-	// TODO: Add your control notification handler code here
-
-	//	CString  strFilePath = fPath.IsEmpty() ? GetMaterialFilePath(MT_WG) : fPath;
-
-	////CString  strFilePath = GetMaterialFilePath(MT_WG);
-	//CppSQLite3DB db;
-	//db.open(strFilePath);
-	//if(!db.tableExists(L"WuGong"))
-	//{
-	//	return FALSE;
-	//}
-	////清空内存数据
-	//std::map<CString,CWGMat*>::iterator p;
-	//for(p=m_mapWGMa.begin();p!=m_mapWGMa.end();++p)
-	//{
-	//	delete p->second;
-	//	p->second=NULL;
-	//}
-	//m_mapWGMa.clear();
-	////!读数据库数据
-	//try
-	//{
-	//	CString selectstring = L"select * from WuGong ;";
-	//	CppSQLite3Query MBRecordSet = db.execQuery(selectstring);
-
-	//	CWGMat * pConcrete = NULL;
-
-	//	CString strValue;
-	//	double dValue = 0.0;
-	//	int nID = 0;
-	//	int bSys = 0;
-
-
-	//	while (!MBRecordSet.eof())
-	//	{
-
-	//		pConcrete = new CWGMat;
-	//		MBRecordSet.GetCollect(CString(lpcsID), nID);
-	//		pConcrete->SetID( nID);
-
-	//		MBRecordSet.GetCollect(CString(lpcsMatNameIndex), strValue) ;
-	//		pConcrete->SetIndexName(strValue);
-	//		MBRecordSet.GetCollect(CString(lpcsMatNameDim), strValue) ;
-	//		pConcrete->SetDimName(strValue);
-	//		MBRecordSet.GetCollect(CString(lpcsStyle), strValue) ;
-	//		pConcrete->SetStyle(strValue);
-	//		MBRecordSet.GetCollect(CString(lpcsCriterion), strValue) ;
-	//		pConcrete->SetCriterion(strValue);
-	//		MBRecordSet.GetCollect(CString(lpcsType), strValue) ;
-	//		pConcrete->m_strType = strValue;
-	//		MBRecordSet.GetCollect(CString(lpcsv), dValue) ;
-	//		pConcrete->SetV(dValue);
-	//		MBRecordSet.GetCollect(CString(lpcsalfa), dValue) ;
-	//		pConcrete->SetAlfa(dValue);
-	//		MBRecordSet.GetCollect(CString(lpcsgama), dValue) ;
-	//		pConcrete->SetGama(dValue);
-
-	//		MBRecordSet.GetCollect(CString(lpcsE), pConcrete->m_dE) ;
-	//		MBRecordSet.GetCollect(CString(lpcsGC), pConcrete->m_dG) ;
-	//		MBRecordSet.GetCollect(CString(lpcsfcd), pConcrete->m_dfcd) ;
-	//		MBRecordSet.GetCollect(CString(lpcsftd), pConcrete->m_dftd) ;
-	//		MBRecordSet.GetCollect(CString(lpcsftmd), pConcrete->m_dftmd) ;
-	//		MBRecordSet.GetCollect(CString(lpcsfvd), pConcrete->m_dftvd) ;
-
-	//		MBRecordSet.GetCollect(CString(lpcsRemark), strValue) ;
-	//		pConcrete->SetRemark(strValue);
-
-	//		MBRecordSet.GetCollect(CString(lpcsSystem), nID);
-	//		pConcrete->SetSystem( nID);
-
-
-	//		MBRecordSet.nextRow();
-	//		Add(pConcrete);
-	//		delete pConcrete;
-	//	}
-	//}
-	//catch (...)
-	//{
-	//}
-	//db.close();
 }
 
 BOOL CImportDataDlg::CreateA2HKList()
@@ -521,13 +329,6 @@ void CImportDataDlg::Dlg2Data()
 {//!
 	UpdateData(FALSE);
 	//!
-	//m_cmbState.AddString(_T("连续增仓"));
-	//m_cmbState.AddString(_T("连续减仓"));
-	//
-	//m_cmbTimePro.AddString(_T("日"));
-	//m_cmbTimePro.AddString(_T("周"));
-	//m_edtTime.SetWindowTextW(_T("3"));
-
 	m_uState=m_cmbState.GetCurSel();
 	m_uTimePro=m_cmbTimePro.GetCurSel();
 	CString strText;
@@ -1132,6 +933,12 @@ BOOL CImportDataDlg::Select()//!
 }
 
 void CImportDataDlg::OnCbnSelchangeCmbState()
+{
+	// TODO: 在此添加控件通知处理程序代码
+}
+
+
+void CImportDataDlg::OnBnClickedBtnAnasy()
 {
 	// TODO: 在此添加控件通知处理程序代码
 }

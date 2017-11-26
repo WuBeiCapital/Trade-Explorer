@@ -18,9 +18,6 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支援
 
-	BOOL IsFindTagFromExcel(CXLControl* pCXLControl,const CString strTag,int& nReturnRow,int& nReturnCol);//从excel文件中查找标记Force
-	BOOL IsGetRowDataFromExcel(CXLControl* pCXLControl,CArray<CStockData>& arRowData,int nRow,int nCol1,int nCol2);
-	CString GetInsertSqlString(CArray<CStockData>& arRowData,const CString& strName);
 	// 程式碼實作
 
 	CComboBox m_cmbState;
@@ -51,6 +48,6 @@ public:
 	afx_msg void OnBnClickedBtnImport();
 	afx_msg void OnBnUpdateA2HKData();
 	afx_msg void OnBnCreateA2HKList();
-	afx_msg void OnBnClickedButton2();
 	afx_msg void OnCbnSelchangeCmbState();
+	afx_msg void OnBnClickedBtnAnasy();
 };
