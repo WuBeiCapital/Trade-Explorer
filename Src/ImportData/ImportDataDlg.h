@@ -34,13 +34,15 @@ protected:
 
 	CString GetDataPath();
 	CString GetDataHistoryPath();
-	
+	BOOL Anasylis_factor();
+		
 	// 產生的訊息對應函式
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+
 public:
 	BOOL GetDataA2HK();
 	BOOL Select();

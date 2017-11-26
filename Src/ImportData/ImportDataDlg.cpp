@@ -688,7 +688,7 @@ BOOL CImportDataDlg::Select()//!
 	strSql+=vctList.at(0);
 	//strSql+=_T(" where id = ")+strTmp;
 	SQLiteDataReader Reader = sqlite.ExcuteQuery(strSql); 
-	map<UINT,double> mapList;
+	map<UINT,double> mapList;//id  factor
 	UINT uID,uNumber;
 	while(Reader.Read()) 
     {  
@@ -751,6 +751,7 @@ BOOL CImportDataDlg::Select()//!
 			while(Reader.Read()) 
 			{  		
 				CStockData tmp;
+				tmp.SetTime((*pIt));
 				tmp.SetCode(Reader.GetInt64Value(0));
 				tmp.SetName(Reader.GetStringValue(1));
 				tmp.SetCount(Reader.GetInt64Value(2));
@@ -763,7 +764,8 @@ BOOL CImportDataDlg::Select()//!
 	}  
 	// 关闭数据库  
     sqlite.Close(); 
-
+	//!获取行情数据
+	
 	//!输出符合策略的数据集；
 	strName=GetTimeString(sys.wYear,sys.wMonth,sys.wDay);	
 	switch(bTimeType)
@@ -937,10 +939,8 @@ void CImportDataDlg::OnCbnSelchangeCmbState()
 	// TODO: 在此添加控件通知处理程序代码
 }
 
-
-void CImportDataDlg::OnBnClickedBtnAnasy()
-{
-	// TODO: 在此添加控件通知处理程序代码
+BOOL CImportDataDlg::Anasylis_factor()//! 
+{//!
 	//!
 	CString strPath=GetDataPath();
     SQLite sqlite;  
@@ -959,7 +959,6 @@ void CImportDataDlg::OnBnClickedBtnAnasy()
 	/////////////////////////////////////////////////////////////////////////////////////////
 	//!策略//////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////
-	double dFactor=0.01;
 	//!
 	UINT uTimeContinue=3;//!连续
 	BOOL bStateType=FALSE;//!TRUE，增仓；FALSE，减仓
@@ -995,17 +994,98 @@ void CImportDataDlg::OnBnClickedBtnAnasy()
 		default:
 			break;
 	}
-	//!
-	/////////////////////////////////////////////////////////////////////////////////////////
+	//！读取列表
+	double dFactor,dFactorTmp;
+	CString strSql,strNumber;
+	strSql=_T("select * from A2HK");
+	SQLiteDataReader Reader = sqlite.ExcuteQuery(strSql); 
+	map<UINT,CString> mapList;//id  number
+	UINT uID,uNumber;
+	while(Reader.Read()) 
+    {  
+		uID=Reader.GetInt64Value(0);	
+		strNumber=Reader.GetStringValue(2);	
+		mapList[uID]=strNumber;
+    }  
+	//!策略 1\dFactor>=0.01; 首次出现指定比例个股，至今
+	double dFactor=0.01;
+	double dStep=0.01;	
 	//分解策略////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////
 	//!1、解读时间；2、需要搜索的表名
 	SYSTEMTIME sys; 
 	GetLocalTime(&sys);	
+	int yOrg=sys.wYear,mOrg=sys.wMonth, dOrg=sys.wDay;
+	int y=2017,m=3, d=17,uW=0;
 	vector<CString> vctList;
-	int y=sys.wYear,m=sys.wMonth, d=sys.wDay;
+	
+		strTmp=_T("");
+		strName=_T("");		
+		do
+		{//!		
+			if(d<=daysOfMonth(y,m))
+			{//!
+				uW=CaculateWeekDay(y,m,d);
+				if(uW<6)
+				{
+					strName=GetTimeString(y,m,d);
+					strName=_T("A")+strName;
+					vctList.push_back(strName);
+				}
+				/*else
+					d++;*/
+			}
+			else
+			{//!				
+				if(y<yOrg)
+				{
+					if(m<12)
+					{
+						m+=1;						
+					}
+					else
+					{
+						m=1;
+						y+=1;
+					}
+					d=1;
+				}
+				else
+				{			
+					if(m<mOrg)
+					{
+						m+=1;						
+					}
+					else
+					{
+						m=1;
+						y+=1;
+					}
+					d=1;
+				}
+			}
+			uW=CaculateWeekDay(y,m,d);
+		}while(uW>5);
 
-	UINT uW=6;
+		strName=GetTimeString(y,m,d);
+		strName=_T("A")+strName;
+		vctList.push_back(strName);
+
+
+	//!循环搜索符合策略的个股
+	map<UINT,map<UINT,CString>> mapFactor2ID2Time;
+	
+	for(int i=0;i<6;++i)
+	{//!
+		dFactor=i*dStep;
+
+
+	}
+	/////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+
+	UINT uW=6;//!默认值
 	CString strTmp,strName;
 	switch(bTimeType)
 	{
@@ -1086,15 +1166,15 @@ void CImportDataDlg::OnBnClickedBtnAnasy()
 			break;
 	}	
 	_ASSERTE(vctList.size());
-	//！用最近一份数据建立比较样本
+	//！读取用本列表
 	double dFactor,dFactorTmp;
 	CString strSql;
 	//strTmp.Format(_T("%d"),uID);
-	strSql=_T("select * from ");
-	strSql+=vctList.at(0);
+	strSql=_T("select * from A2HK");
+	//strSql+=vctList.at(0);
 	//strSql+=_T(" where id = ")+strTmp;
 	SQLiteDataReader Reader = sqlite.ExcuteQuery(strSql); 
-	map<UINT,double> mapList;
+	map<UINT,CString> mapList;//id  factor
 	UINT uID,uNumber;
 	while(Reader.Read()) 
     {  
@@ -1157,6 +1237,7 @@ void CImportDataDlg::OnBnClickedBtnAnasy()
 			while(Reader.Read()) 
 			{  		
 				CStockData tmp;
+				tmp.SetTime((*pIt));
 				tmp.SetCode(Reader.GetInt64Value(0));
 				tmp.SetName(Reader.GetStringValue(1));
 				tmp.SetCount(Reader.GetInt64Value(2));
@@ -1169,7 +1250,8 @@ void CImportDataDlg::OnBnClickedBtnAnasy()
 	}  
 	// 关闭数据库  
     sqlite.Close(); 
-
+	//!获取行情数据
+	
 	//!输出符合策略的数据集；
 	strName=GetTimeString(sys.wYear,sys.wMonth,sys.wDay);	
 	switch(bTimeType)
@@ -1271,5 +1353,74 @@ void CImportDataDlg::OnBnClickedBtnAnasy()
 		pCXLControl->TerminateExcel();//终止excel
 		_DELPTR(pCXLControl);
 		AfxMessageBox(_T("数据导出完毕!"));
-	}
+	} 
+	//!
+	//memset(sql,0,sizeof(sql));
+	// _stprintf_s(sql,_T("%s"),  
+ //       _T("CREATE TABLE [Tmp] (")  
+ //       _T("[id] INTEGER NOT NULL PRIMARY KEY, ")  
+ //       _T("[name] NVARCHAR(20), ")  
+	//	_T("[count] INTEGER, ") 
+	//	_T("[factor] REAL, ") 
+ //       _T("[change] REAL); ") 
+ //       );  
+ //   if(!sqlite.ExcuteNonQuery(sql))
+ //   {  
+ //       printf("Create database table failed...\n");  
+ //   }
+	//else
+	//{//!
+ // 	  //// 当一次性插入多条记录时候，采用事务的方式，提高效率
+	//	sqlite.BeginTransaction();  
+	//	memset(sql,0,sizeof(sql));  
+	//	_stprintf_s(sql,_T("insert into Tmp(id,name,count,factor,change) values(?,?,?,?,?)"));  
+	//	//strSql=_T("insert into ")+strName+_T("(id,name,count,factor) values(?,?,?,?)");
+	//	SQLiteCommand cmd(&sqlite,sql);  
+	//	// 批量插入数据  
+	//	for(map<UINT,vector<CStockData>>::iterator p=mapDatas.begin();p!=mapDatas.end();++p)  
+	//	{ 	
+	//		TCHAR strValue[16] = {0};  
+	//		vector<CStockData> vctstockDatas=(*p).second;
+	//		CStockData tmp;
+	//		if(bStateType)
+	//		{
+	//			tmp=vctstockDatas.at(0);
+	//		}
+	//		else
+	//		{
+	//			tmp=vctstockDatas.at(vctstockDatas.size()-1);
+	//		}
+	//		_stprintf_s(strValue,_T("%d"),(*p).first);  
+	//		// 绑定第一个参数（id字段值）  
+	//		cmd.BindParam(1,(int)((*p).first) );// 
+	//		// 绑定第二个参数（name字段值）  
+	//		cmd.BindParam(2,(tmp.GetName())); 		
+	//		// 绑定第三个参数（count字段值）  
+	//		_stprintf_s(strValue,_T("%d"),(int)(tmp.GetCount())); 
+	//		cmd.BindParam(3,(int)(tmp.GetCount()));//
+	//		// 绑定第三个参数（factor字段值）
+	//		_stprintf_s(strValue,_T("%.4f"),tmp.GetFactor()); 
+	//		cmd.BindParam(4,(double)(tmp.GetFactor()));//  
+	//		double dChange=(vctstockDatas.at(0).GetFactor()-vctstockDatas.at(vctstockDatas.size()-1).GetFactor());
+	//		cmd.BindParam(5,dChange);//  
+	//		if(!sqlite.ExcuteNonQuery(&cmd)) 
+	//		{  
+	//			_tprintf(_T("%s\n"),sqlite.GetLastErrorMsg());  
+	//			break;  
+	//		} 					   
+	//	}  
+	//	// 清空cmd  
+	//	cmd.Clear();  
+	//	// 提交事务  
+	//	sqlite.CommitTransaction();  
+	//}	
+    // 关闭数据库  
+   // sqlite.Close(); 
+	//！
+	return 0;
+}
+void CImportDataDlg::OnBnClickedBtnAnasy()
+{
+	// TODO: 在此添加控件通知处理程序代码
+
 }
