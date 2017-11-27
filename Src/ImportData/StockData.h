@@ -1,9 +1,9 @@
 #pragma once
-class CStockData
+class CHKStockData
 {
 public:
-	CStockData(void);
-	~CStockData(void);
+	CHKStockData(void);
+	~CHKStockData(void);
 
 	BOOL IsEmpty() const;
 	void SetTime(const CString& strTime);
@@ -12,6 +12,9 @@ public:
 	DWORD GetCode() const;
 	void SetName(const CString& strName);
 	CString GetName() const;
+	void SetNumber(const CString& strNumber);
+	CString GetNumber() const;
+
 	void SetCount(DWORD dCount);
 	DWORD GetCount() const;
 	void SetFactor(double dFactor);
@@ -25,6 +28,7 @@ protected:
 	DWORD  m_dCount;
 	double m_dFactor;
 	double m_dValue;
+	CString m_strNumber;
 };
 
 

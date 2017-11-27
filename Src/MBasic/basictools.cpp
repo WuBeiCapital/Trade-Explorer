@@ -367,5 +367,106 @@ void SendMessage2Main(const std::vector<CString>& vctMessages,StateFlag enStateF
   return strPath;
 }
 
+ 
+//void CheckDirectory(CString sDirectory)
+//{
+//  //检查目录是否存在
+//  WIN32_FIND_DATA fd; 
+//  HANDLE hFind = FindFirstFile(sDirectory, &fd); 
+//  if (!((hFind != INVALID_HANDLE_VALUE) && (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)))
+//  { 
+//    ::CreateDirectory(sDirectory,NULL);
+//  } 
+//  FindClose(hFind); 
+//}
+//
+//BOOL IsDirectory(const char *pDir)  
+//{  
+//    char szCurPath[500];  
+//    ZeroMemory(szCurPath, 500);  
+//    sprintf_s(szCurPath, 500, "%s//*", pDir);  
+//    WIN32_FIND_DATAA FindFileData;        
+//    ZeroMemory(&FindFileData, sizeof(WIN32_FIND_DATAA));  
+//  
+//    HANDLE hFile = FindFirstFileA(szCurPath, &FindFileData); /**< find first file by given path. */  
+//  
+//    if( hFile == INVALID_HANDLE_VALUE )   
+//    {  
+//        FindClose(hFile);  
+//        return FALSE; /** 如果不能找到第一个文件，那么没有目录 */  
+//    }else  
+//    {     
+//        FindClose(hFile);  
+//        return TRUE;  
+//    }  
+//      
+//}  
+//BOOL DeleteDirectory(const CString& strDirName)  
+//{  
+////  CFileFind tempFind;     //声明一个CFileFind类变量，以用来搜索  
+//    char szCurPath[MAX_PATH];       //用于定义搜索格式  
+//    _snprintf(szCurPath, MAX_PATH, "%s//*.*", strDirName); //匹配格式为*.*,即该目录下的所有文件  
+//    WIN32_FIND_DATAA FindFileData;        
+//    ZeroMemory(&FindFileData, sizeof(WIN32_FIND_DATAA));  
+//    HANDLE hFile = FindFirstFileA(szCurPath, &FindFileData);  
+//    BOOL IsFinded = TRUE;  
+//    while(IsFinded)  
+//    {  
+//        IsFinded = FindNextFileA(hFile, &FindFileData); //递归搜索其他的文件  
+//        if( strcmp(FindFileData.cFileName, ".") && strcmp(FindFileData.cFileName, "..") ) //如果不是"." ".."目录  
+//        {  
+//            CString strFileName = "";  
+//            strFileName = strFileName+ strDirName + _T("//") + FindFileData.cFileName;  
+//            CString strTemp;  
+//            strTemp = strFileName;  
+//            if( IsDirectory(strFileName)) ) //如果是目录，则递归地调用  
+//            {     
+//                printf("目录为:%s/n", strFileName.c_str());  
+//                DeleteDirectory(strTemp.c_str());  
+//            }  
+//            else  
+//            {  
+//                DeleteFileA(strTemp);  
+//            }  
+//        }  
+//    }  
+//    FindClose(hFile);  
+//  
+//    //BOOL bRet = RemoveDirectoryA(DirName);  
+//    //if( bRet == 0 ) //删除目录  
+//    //{  
+//    //    printf("删除%s目录失败！/n", DirName);  
+//    //    return FALSE;  
+//    //}  
+//    return TRUE;  
+//}  
+
+CString Time2Str(double dCost)
+{//!
+	CString strTime(_T(""));
+	double dS(0);
+	if(dCost < 60)//m
+	{
+		strTime.Format(_T("%d秒"),(int)dCost);
+	}
+	else if(dCost > 60 && dCost < 3600)
+	{
+		int    nM =int(floor(dCost/60.0));
+		dS=dCost-nM*60;
+
+		strTime.Format(_T("%d分%d秒"),nM,(int)dS);
+	}
+	else
+	{
+		int    nH = int(floor(dCost/3600));
+		int nM = int(floor((dCost-nH*3600)/60));	
+
+		dS=dCost-nH*3600-nM*60;
+
+		strTime.Format(_T("%d小时%d分%d秒"),nH,nM,(int)dS);
+	}
+	//!
+	return strTime;
+};//ms
 
 _MITC_BASIC_END 

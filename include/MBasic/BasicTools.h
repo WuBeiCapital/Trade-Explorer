@@ -47,4 +47,29 @@ MITC_BASIC_EXT UINT CaculateWeekDay(int y,int m, int d);
 MITC_BASIC_EXT CString GetTimeString(int y,int m, int d);
 
 
+const double NS_MIN_VALUE=1.0e-6;
+// a==b
+inline bool Equal2Dbl(double val1,double val2=0,double dEps=NS_MIN_VALUE) { return fabs(val2-val1) < dEps; }
+// a==b with precision
+inline bool Equal2DblEx(double val1,double val2,double dEps=NS_MIN_VALUE) {	return fabs(val2-val1) < dEps; }
+// a!=b
+inline bool DblNotEqual(double a,double b,double dEps=NS_MIN_VALUE) { return !Equal2DblEx(a, b, dEps); }
+// a<b
+inline bool DblLT(double a,double b,double dEps=NS_MIN_VALUE) { return DblNotEqual(a, b,dEps) && (a<b);}
+// a<=b
+inline bool DblLE(double a,double b,double dEps=NS_MIN_VALUE) { return Equal2DblEx(a, b,dEps)||DblLT(a, b);}
+// a>b
+inline bool DblGT(double a,double b,double dEps=NS_MIN_VALUE) { return DblNotEqual(a, b,dEps) && (a>b);}
+// a>=b
+inline bool DblGE(double a,double b,double dEps=NS_MIN_VALUE) { return Equal2DblEx(a, b,dEps) || DblGT(a, b);}
+
+MITC_BASIC_EXT CString GetDesktopPath();
+//
+//MITC_BASIC_EXT void CheckDirectory(CString sDirectory);
+//
+//MITC_BASIC_EXT  BOOL DeleteDirectory(const CString& strDirName) ;
+//
+//MITC_BASIC_EXT CString Time2Str(double dCost);
+
+
 _MITC_BASIC_END

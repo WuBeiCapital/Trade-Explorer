@@ -2,7 +2,7 @@
 #include "StockData.h"
 
 
-CStockData::CStockData(void)
+CHKStockData::CHKStockData(void)
 {
 		m_strTime=_T("");
 	 m_uCode=0;
@@ -12,58 +12,66 @@ CStockData::CStockData(void)
 	 m_dValue=0;
 }
 
-CStockData::~CStockData(void)
+CHKStockData::~CHKStockData(void)
 {
 }
 
-BOOL CStockData::IsEmpty() const
+BOOL CHKStockData::IsEmpty() const
 {
 	return m_strName.IsEmpty();
 }
 
-	void CStockData::SetTime(const CString& strTime)
+	void CHKStockData::SetTime(const CString& strTime)
 	{
 		m_strTime=strTime;
 	}
-	CString CStockData::GetTime() const
+	CString CHKStockData::GetTime() const
 	{
 		return m_strTime;
 	}
-	void CStockData::SetCode(DWORD dCode)
+	void CHKStockData::SetCode(DWORD dCode)
 	{
 		m_uCode=dCode;
 	}
-	DWORD CStockData::GetCode() const
+	DWORD CHKStockData::GetCode() const
 		{return m_uCode;}
-	void CStockData::SetName(const CString& strName)
+	void CHKStockData::SetName(const CString& strName)
 		{
 			m_strName=strName;
 	}
-	CString CStockData::GetName() const
+	CString CHKStockData::GetName() const
 		{
 			return m_strName;
 	}
-	void CStockData::SetCount(DWORD dCount)
+	void CHKStockData::SetCount(DWORD dCount)
 		{
 			m_dCount=dCount;
 	}
-	DWORD CStockData::GetCount() const
+	DWORD CHKStockData::GetCount() const
 		{
 			return m_dCount;
 	}
-	void CStockData::SetFactor(double dFactor)
+	void CHKStockData::SetFactor(double dFactor)
 		{
 			m_dFactor=dFactor;
 	}
-	double CStockData::GetFactor() const
+	double CHKStockData::GetFactor() const
 		{
 			return m_dFactor;
 	}
-	void CStockData::SetValue(double dValue)
+	void CHKStockData::SetValue(double dValue)
 	{
 		m_dValue=dValue;
 	}
-	double CStockData::GetValue() const
+	double CHKStockData::GetValue() const
 	{
 		return m_dValue;
+	}
+		void CHKStockData::SetNumber(const CString& strNumber)
+		{
+			m_strNumber=strNumber;
+		}
+	CString CHKStockData::GetNumber() const
+	{
+		return m_strNumber;
 	}
