@@ -503,7 +503,7 @@ BOOL CImportDataDlg::GetDataA2HK()//
 				cmd.BindParam(6,dTmp); 
 				dTmp=ItemTest.amount;//amount,
 				cmd.BindParam(7,dTmp); 
-				dTmp=ItemTest.amount;//adj_factor
+				dTmp=ItemTest.adj_factor;//adj_factor
 				cmd.BindParam(8,dTmp); 
 				if(!sqlite.ExcuteNonQuery(&cmd)) 
 				{  
@@ -1056,38 +1056,53 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 	}while(true);
 
 	//!循环搜索符合策略的个股;
+	dFactor=0;
 	map<UINT,map<UINT,CHKStockData>> mapFactor2ID2Data;	
 	map<UINT,CString>::iterator p; //id  number
 	for(int i=0;i<6;++i)
 	{//!
-		dFactor=i*dStep;
+		dFactor+=dStep;
 		map<UINT,CHKStockData> mapID2Data;
 		for(vector<CString>::iterator pIt=vctList.begin(); pIt!=vctList.end();++pIt)
 		{			
-			strTmp.Format(_T("%d"),uID);
+			//strTmp.Format(_T("%d"),uID);
 			strSql=_T("select * from ");
 			strSql+=(*pIt);
-			strSql+=_T(" where id = ")+strTmp;
+			//strSql+=_T(" where id = ")+strTmp;
 			//!
 			SQLiteDataReader Reader = sqlite.ExcuteQuery(strSql);	
 			while(Reader.Read()) 
 			{  		
 				uID=Reader.GetInt64Value(0);
 				dFactorTmp=Reader.GetFloatValue(3);	
-				if(DblGE(dFactorTmp,dFactor) && mapID2Data.find(uID)==mapID2Data.end())//!首次
+				if(DblGE(dFactorTmp,dFactor))//!首次
 				{//！
-					CHKStockData tmp;
-					tmp.SetTime((*pIt));
-					tmp.SetCode(Reader.GetInt64Value(0));
-					tmp.SetName(Reader.GetStringValue(1));
-					tmp.SetCount(Reader.GetInt64Value(2));
-					tmp.SetFactor(Reader.GetFloatValue(3));	
-					p=mapList.find(Reader.GetInt64Value(0));
-					if(p!=mapList.end())
+					BOOL bExist=FALSE;
+					if(mapID2Data.size()>0)
 					{
-						tmp.SetNumber((*p).second);
-						mapID2Data[uID]=tmp;
-					}					
+						if(mapID2Data.find(uID)!=mapID2Data.end())
+							bExist=TRUE;
+					}	
+					else
+						bExist=FALSE;
+
+					if(!bExist)
+					{
+						CHKStockData tmp;
+						strTmp=(*pIt);
+						strTmp.Replace(_T("A"),_T(""));
+						tmp.SetTime(strTmp);
+						tmp.SetCode(Reader.GetInt64Value(0));
+						tmp.SetName(Reader.GetStringValue(1));
+						tmp.SetCount(Reader.GetInt64Value(2));
+						tmp.SetFactor(Reader.GetFloatValue(3));	
+						p=mapList.find(Reader.GetInt64Value(0));
+						if(p!=mapList.end())
+						{
+							tmp.SetNumber((*p).second);
+							mapID2Data[uID]=tmp;
+						}	
+					}									
 				}
 			} 
 			Reader.Close();
@@ -1120,7 +1135,7 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 		{		
 			CHKStockData tmp=(*p).second;			
 			strTmp=_T("A")+tmp.GetNumber();
-			strSql=_T("select * from ");
+			strSql=_T("select * from ")+strTmp;
 			strSql+=_T(" where data = ")+tmp.GetTime();
 		
 			SQLiteDataReader Reader = sqlite2.ExcuteQuery(strSql);	
@@ -1128,7 +1143,9 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 			while(Reader.Read()) 
 			{  		
 				strTmp=Reader.GetStringValue(0);
-				dPreValue=Reader.GetFloatValue(6)/Reader.GetFloatValue(5);
+				double dTmp=Reader.GetFloatValue(6);
+				double dTmp2=Reader.GetFloatValue(5);
+				dPreValue=dTmp/dTmp2;
 				dPreFactor=Reader.GetFloatValue(7);			
 			} 
 			Reader.Close();
@@ -1142,7 +1159,10 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 			while(Reader2.Read()) 
 			{  		
 				strTmp=Reader2.GetStringValue(0);
-				dCurValue=Reader2.GetFloatValue(6)/Reader2.GetFloatValue(5);
+				//dCurValue=Reader2.GetFloatValue(6)/Reader2.GetFloatValue(5);
+				double dTmp=Reader.GetFloatValue(6);
+				double dTmp2=Reader.GetFloatValue(5);
+				dCurValue=dTmp/dTmp2;
 				dCurFactor=Reader2.GetFloatValue(7);
 			}
 			Reader2.Close();
@@ -1153,8 +1173,8 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 		}
 		mapFactor2ID2Data[(*pIt).first]=piterator;
 	}	
-	//!输出符合策略的数据集；
-	//strName=GetTimeString(sys.wYear,sys.wMonth,sys.wDay);	
+	//!输出符合策略的数据集；	
+	strName=GetTimeString(sys.wYear,sys.wMonth,sys.wDay);	
 	//switch(bTimeType)
 	//{
 	//	case 0:
@@ -1179,82 +1199,79 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 	//}
 	//strName=strTmp+_T("_")+strName;
 	////!
-	//CString strFileName=strName;
-	//CFileDialog dlgsave(FALSE,NULL,strFileName,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("Excel Files(*.xlsx)|*.xlsx|Excel Files(*.xls)|*.xls|All Files (*.*)|*.*||"));  
-	//if(dlgsave.DoModal() == IDOK)  
-	//{  
-	//	CXLControl* pCXLControl = new CXLControl; 
+	CString strFileName=strName;
+	CFileDialog dlgsave(FALSE,NULL,strFileName,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("Excel Files(*.xlsx)|*.xlsx|Excel Files(*.xls)|*.xls|All Files (*.*)|*.*||"));  
+	if(dlgsave.DoModal() == IDOK)  
+	{  
+		CXLControl* pCXLControl = new CXLControl; 
 
-	//	pCXLControl->NewXL();//创建表格
-	//	strFileName =  dlgsave.GetPathName(); 
+		pCXLControl->NewXL();//创建表格
+		strFileName =  dlgsave.GetPathName(); 
 
-	//	int nExcelCol = 0;
-	//	int nExcelRow = 1;
+		int nExcelCol = 0,nCol = 0;
+		int nExcelRow = 1,nRow = 1;
 
-	//	pCXLControl->SetXL(nExcelRow,0,lpcsCode);
-	//	pCXLControl->SetXL(nExcelRow,1,lpcsName);
-	//	pCXLControl->SetXL(nExcelRow,2,lpcsCount);
-	//	pCXLControl->SetXL(nExcelRow,3,lpcsFactor);
-	//	pCXLControl->SetXL(nExcelRow++,4,lpcsChange);
-	//	for(map<UINT,vector<CHKStockData>>::iterator p=mapDatas.begin();p!=mapDatas.end();++p,++nExcelRow)  
-	//	{ 	
-	//		vector<CHKStockData> vctstockDatas=(*p).second;
-	//		CHKStockData tmp;
-	//		if(bStateType)
-	//		{
-	//			tmp=vctstockDatas.at(0);
-	//		}
-	//		else
-	//		{
-	//			tmp=vctstockDatas.at(vctstockDatas.size()-1);
-	//		}		
-	//		//名称
-	//		strTmp.Format(_T("%d"),(long)tmp.GetCode());
-	//		pCXLControl->SetXL(nExcelRow,0,strTmp);
+		pCXLControl->SetXL(nExcelRow,0,_T("样本比例"));
+		pCXLControl->SetXL(nExcelRow,1,_T("编号"));
+		pCXLControl->SetXL(nExcelRow,2,_T("名称"));
+		pCXLControl->SetXL(nExcelRow,3,_T("达到样本比例日期"));
+		pCXLControl->SetXL(nExcelRow,4,_T("实际比例"));
+		pCXLControl->SetXL(nExcelRow++,5,_T("涨幅"));
 
-	//		pCXLControl->SetXL(nExcelRow,1,tmp.GetName());
+		for(map<UINT,map<UINT,CHKStockData>>::iterator p=mapFactor2ID2Data.begin(); p!=mapFactor2ID2Data.end();++p)
+		{//!			
+			map<UINT,CHKStockData> mapStockDatas=(*p).second;
+			for(map<UINT,CHKStockData>::iterator pIt=mapStockDatas.begin();pIt!=mapStockDatas.end();++pIt)
+			{
+				nExcelCol=nCol;
+				CHKStockData tmp=((*pIt).second);	
+				//样本比例
+				strTmp.Format(_T("%d"),(long)(*p).first);
+				strTmp+=_T("%");
+				pCXLControl->SetXL(nExcelRow,nExcelCol++,strTmp);
+				//!编号
+				pCXLControl->SetXL(nExcelRow,nExcelCol++,tmp.GetNumber());
+				//!名称
+				pCXLControl->SetXL(nExcelRow,nExcelCol++,tmp.GetName());
+				//!达到样本比例日期
+				pCXLControl->SetXL(nExcelRow,nExcelCol++,tmp.GetTime());
+				//!实际比例
+				strTmp.Format(_T("%.2f"),tmp.GetFactor()*100);
+				strTmp+=_T("%");
+				pCXLControl->SetXL(nExcelRow,nExcelCol++,strTmp);
+				//!涨幅
+				strTmp.Format(_T("%.2f"),tmp.GetValue()*100);
+				pCXLControl->SetXL(nExcelRow,nExcelCol++,strTmp);		
+			}		
+		}		
+		pCXLControl->SetCellWidth(0,nExcelCol,10);//设置列宽
+		pCXLControl->SetHoriAlign(1,0,nExcelRow,4,1);//设置单元格水平对齐方式
+		pCXLControl->SetFonts(2,0,nExcelRow,nExcelCol,12,NULL,1,FALSE);//设置字体
+		pCXLControl->SetFonts(0,0,0,nExcelCol,16,NULL,1,FALSE);//设置字体
+		pCXLControl->SetFonts(1,0,1,nExcelCol,12,NULL,1,FALSE);//设置字体
+		//if(bStateType)
+		//	pCXLControl->SetCellColor(1,0,1,4,3);//设置单位颜色为绿色 0无 1 黑 2白3红 4绿
+		//else
+		//	pCXLControl->SetCellColor(1,0,1,4,4);//设置单位颜色为绿色 0无 1 黑 2白3红 4绿
 
-	//		strTmp.Format(_T("%d"),(long)tmp.GetCount());
-	//		pCXLControl->SetXL(nExcelRow,2,strTmp);
+		pCXLControl->SetFonts(1,0,1,nExcelCol,10,NULL,1,TRUE);//设置表头文字加粗
+		pCXLControl->SetBorders(1,0,nExcelRow-1,nExcelCol,1);//设置显示网格线
 
-	//		double dFactor=tmp.GetFactor()*100;
-	//		strTmp.Format(_T("%.2f"),dFactor);
-	//		strTmp+=_T("%");
-	//		pCXLControl->SetXL(nExcelRow,3,strTmp);
+		//strTmp.Format(_T(":总计%d只个股"),mapDatas.size());
+		//strTmp=strName+strTmp;
+		//pCXLControl->SetXL(0,0,strTmp);
+		//pCXLControl->SetXL(++nExcelRow,0,_T("附注:"));
+		//pCXLControl->SetXL(++nExcelRow,0,_T("1、连续多日指连续多个交易日;"));
+		//pCXLControl->SetXL(++nExcelRow,0,_T("2、连续多周、月均指连续多个自然周、月;"));
+		//pCXLControl->SetXL(++nExcelRow,0,_T("3、统计结果仅供参考，不作为操作依据。"));
 
-	//		double dChange=(vctstockDatas.at(0).GetFactor()-vctstockDatas.at(vctstockDatas.size()-1).GetFactor());
-	//		strTmp.Format(_T("%.2f"),dChange*100);
-	//		strTmp+=_T("%");
-	//		pCXLControl->SetXL(nExcelRow,4,strTmp);		
-	//	}		
-	//	pCXLControl->SetCellWidth(0,4,10);//设置列宽
-	//	pCXLControl->SetHoriAlign(1,0,nExcelRow,4,1);//设置单元格水平对齐方式
-	//	pCXLControl->SetFonts(2,0,nExcelRow,4,12,NULL,1,FALSE);//设置字体
-	//	pCXLControl->SetFonts(0,0,0,4,16,NULL,1,FALSE);//设置字体
-	//	pCXLControl->SetFonts(1,0,1,4,12,NULL,1,FALSE);//设置字体
-	//	if(bStateType)
-	//		pCXLControl->SetCellColor(1,0,1,4,3);//设置单位颜色为绿色 0无 1 黑 2白3红 4绿
-	//	else
-	//		pCXLControl->SetCellColor(1,0,1,4,4);//设置单位颜色为绿色 0无 1 黑 2白3红 4绿
+		pCXLControl->SetSheetName(strName);//设置sheet表名称
+		pCXLControl->SaveAs(strFileName);//另存为
 
-	//	pCXLControl->SetFonts(1,0,1,4,10,NULL,1,TRUE);//设置表头文字加粗
-	//	pCXLControl->SetBorders(1,0,nExcelRow-1,4,1);//设置显示网格线
-
-	//	strTmp.Format(_T(":总计%d只个股"),mapDatas.size());
-	//	strTmp=strName+strTmp;
-	//	pCXLControl->SetXL(0,0,strTmp);
-	//	pCXLControl->SetXL(++nExcelRow,0,_T("附注:"));
-	//	pCXLControl->SetXL(++nExcelRow,0,_T("1、连续多日指连续多个交易日;"));
-	//	pCXLControl->SetXL(++nExcelRow,0,_T("2、连续多周、月均指连续多个自然周、月;"));
-	//	pCXLControl->SetXL(++nExcelRow,0,_T("3、统计结果仅供参考，不作为操作依据。"));
-
-	//	pCXLControl->SetSheetName(strName);//设置sheet表名称
-	//	pCXLControl->SaveAs(strFileName);//另存为
-
-	//	pCXLControl->TerminateExcel();//终止excel
-	//	_DELPTR(pCXLControl);
-	//	AfxMessageBox(_T("数据导出完毕!"));
-	//} 
+		pCXLControl->TerminateExcel();//终止excel
+		_DELPTR(pCXLControl);
+		AfxMessageBox(_T("数据导出完毕!"));
+	} 
 	//!
 	//memset(sql,0,sizeof(sql));
 	// _stprintf_s(sql,_T("%s"),  
