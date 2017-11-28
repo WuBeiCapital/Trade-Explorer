@@ -42,11 +42,19 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
-
+	
+	map<UINT,CString> m_mapHK2Alists;
 public:
 	BOOL GetDataA2HK();
 	BOOL Select();
 	BOOL CreateA2HKList();
+	
+	//!Query
+	CString GetNumberByID(UINT uID) const;//HK2A
+	UINT GetIDByNumber(const CString& strNumber) const;//A2HK
+	//!mapSrcData 查询个股（A股编码、查询起点时间）自某一时间点后，首次出现指定条件的时间节点;如果没有满足条件的就没有；
+	BOOL ExcuteQueryTime(const map<CString,CString>& mapSrcData,const ConditionItem& cdItem,map<CString,CString>& mapDecData);
+
 	afx_msg void OnBnClickedBtnImport();
 	afx_msg void OnBnUpdateA2HKData();
 	afx_msg void OnBnCreateA2HKList();

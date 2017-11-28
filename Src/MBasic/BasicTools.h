@@ -45,6 +45,8 @@ MITC_BASIC_EXT bool isLeap(int y);//≈–∂œ «∑Ò «»ÚƒÍ
 MITC_BASIC_EXT int daysOfMonth(int y,int m);
 MITC_BASIC_EXT UINT CaculateWeekDay(int y,int m, int d);
 MITC_BASIC_EXT CString GetTimeString(int y,int m, int d);
+MITC_BASIC_EXT void SplitTimeString(const CString& strTime,int& y,int& m, int& d);
+MITC_BASIC_EXT CString  CalcTimeString(const CString& strTime,BOOL bFront=TRUE);
 
 
 const double NS_MIN_VALUE=1.0e-6;
