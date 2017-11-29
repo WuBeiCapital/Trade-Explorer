@@ -80,81 +80,201 @@ UINT CaculateWeekDay(int y,int m, int d)
     //}
 	return iWeek;
 }
-CString  CalcTimeString(const CString& strTime,BOOL bFront)
+BOOL  CalcTimeString(const CString& strTime,UINT uTimeContinue,UINT uTimePeriod,vector<CString>& vctTimeslist,BOOL bFront)
 {
 	int y,m, d;
 	//int yOrg,mOrg, dOrg;
 	CString strTmp,strName;
 	strTmp=strTime;
 	SplitTimeString(strTmp,y,m,d);
-	UINT uW=6;
-	if(bFront)//时间向前推
-	{//!
-		strTmp=_T("");
-		strName=_T("");		
-		do
-		{//!		
-			if(d>1)
+	//!
+	switch(uTimePeriod)
+	{
+		case 0:// 天
+		{
+			UINT uW=6;
+			if(bFront)//时间向前推
 			{//!
-				d-=1;
-			}
-			else
-			{//!
-				if(m>1)
-				{
-					m-=1;
-					d=daysOfMonth(y,m);
-				}
-				else
-				{			
-					y-=1;
-					m=12;
-					d=daysOfMonth(y,m);
-				}
-			}
-			uW=CaculateWeekDay(y,m,d);
-		}while(uW>5);
+				for(int i=0;i <uTimeContinue+1;++i)
+				{//!
+					strTmp=_T("");
+					strName=_T("");		
+					do
+					{//!		
+						if(d>1)
+						{//!
+							d-=1;
+						}
+						else
+						{//!
+							if(m>1)
+							{
+								m-=1;
+								d=daysOfMonth(y,m);
+							}
+							else
+							{			
+								y-=1;
+								m=12;
+								d=daysOfMonth(y,m);
+							}
+						}
+						uW=CaculateWeekDay(y,m,d);
+					}while(uW>5);
 
-		strName=GetTimeString(y,m,d);
-	}
-	else
-	{//！
-		do
-		{//!	
-			d++;
-			if(d<=daysOfMonth(y,m))
-			{//!
-				uW=CaculateWeekDay(y,m,d);
-				if(uW<6)
-				{
 					strName=GetTimeString(y,m,d);
 					strName=_T("A")+strName;
-				}				
+					vctTimeslist.push_back(strName);
+				}
 			}
 			else
-			{//!				
-				if(m<12)
-				{
-					m+=1;					
-				}
-				else
-				{
-					m=1;
-					y+=1;
-				}
-				d=1;
+			{//！
+				for(int i=0;i <uTimeContinue+1;++i)
+				{//!
+					strTmp=_T("");
+					strName=_T("");		
+					do
+					{//!	
+						d++;
+						if(d<=daysOfMonth(y,m))
+						{//!
+							uW=CaculateWeekDay(y,m,d);
+							if(uW<6)
+							{
+								strName=GetTimeString(y,m,d);
+								strName=_T("A")+strName;
+								vctTimeslist.push_back(strName);
+							}				
+						}
+						else
+						{//!				
+							if(m<12)
+							{
+								m+=1;					
+							}
+							else
+							{
+								m=1;
+								y+=1;
+							}
+							d=1;
 			
-				uW=CaculateWeekDay(y,m,d);
-				if(uW<6)
-				{
-					strName=GetTimeString(y,m,d);
-					strName=_T("A")+strName;
+							uW=CaculateWeekDay(y,m,d);
+							if(uW<6)
+							{
+								strName=GetTimeString(y,m,d);
+								strName=_T("A")+strName;
+								vctTimeslist.push_back(strName);
+							}
+						}				
+					}while(uW>5);
 				}
-			}				
-		}while(uW>5);
-	}
+			}
+			break;
+		}
+		case 1://!周	
+		{
+			UINT uW=5;
+			if(bFront)//时间向前推
+			{//!
+				for(int i=0;i <uTimeContinue+1;++i)
+				{//!
+					strTmp=_T("");
+					strName=_T("");	
+				
+					uW=CaculateWeekDay(y,m,d);
+					if(uW>=5)
+					{
+						//!调整到本周五
+						d-=uW-5;
+					}
+					else
+					{
+						//!调整到上周五
+						d-=uW+2;
+					}
+					//！
+					if(d<0)
+					{//!
+						if(m>1)
+						{
+							m-=1;
+							d=daysOfMonth(y,m)+d;
+						}
+						else
+						{			
+							y-=1;
+							m=12;
+							d=daysOfMonth(y,m)+d;
+						}
+					}					
+					//uW=CaculateWeekDay(y,m,d);
+					strName=GetTimeString(y,m,d);
+					strName=_T("A")+strName;	
+					vctTimeslist.push_back(strName);
+					d-=7;
+				}
+			}
+			else
+			{
+				for(int i=0;i <uTimeContinue+1;++i)
+				{//!
+					strTmp=_T("");
+					strName=_T("");	
+				
+					uW=CaculateWeekDay(y,m,d);
+					if(uW>=5)
+					{
+						//!调整到本周五
+						d-=uW-5;
+					}
+					else
+					{
+						//!调整到本周五
+						d-=uW-5;
+					}
+					//！
+					if(d<0)
+					{//!
+						if(m>1)
+						{
+							m-=1;
+							d=daysOfMonth(y,m)+d;
+						}
+						else
+						{			
+							y-=1;
+							m=12;
+							d=daysOfMonth(y,m)+d;
+						}
+					}
 
-	return strName;
+					if(d>daysOfMonth(y,m))
+					{//!
+						if(m==12)
+						{
+							d=d-daysOfMonth(y,m);
+							m=1;
+							y+=1;							
+						}
+						else
+						{							
+							m+=1;
+							d=d-daysOfMonth(y,m);
+						}
+					}
+					strName=GetTimeString(y,m,d);
+					strName=_T("A")+strName;	
+					vctTimeslist.push_back(strName);
+					d+=7;
+				}
+			}
+			break;	
+		}
+		default:
+			break;
+	}	
+	return TRUE;
 }
 void SplitTimeString(const CString& strTime,int& y,int& m, int& d)
 {

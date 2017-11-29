@@ -306,135 +306,62 @@ BOOL CImportDataDlg::ExcuteQueryTime(const map<CString,CString>& mapSrcData,cons
 
 	UINT uW=6;
 	CString strTmp,strName;
-	//switch(bTimeType)
-	//{
-	//	case 0://day
-	//		for(int i=0;i <uTimeContinue+1;++i)
-	//		{//!
-	//			strTmp=_T("");
-	//			strName=_T("");		
-	//			do
-	//			{//!		
-	//				if(d>1)
-	//				{//!
-	//					d-=1;
-	//				}
-	//				else
-	//				{//!
-	//					if(m>1)
-	//					{
-	//						m-=1;
-	//						d=daysOfMonth(y,m);
-	//					}
-	//					else
-	//					{			
-	//						y-=1;
-	//						m=12;
-	//						d=daysOfMonth(y,m);
-	//					}
-	//				}
-	//				uW=CaculateWeekDay(y,m,d);
-	//			}while(uW>5);
 
-	//			strName=GetTimeString(y,m,d);
-	//			strName=_T("A")+strName;
-	//			vctList.push_back(strName);
-	//		}
-	//		break;
- //       case 1://week
-	//		//！
-	//		for(int i=0;i <uTimeContinue+1;++i)
-	//		{//!
-	//			strTmp=_T("");
-	//			strName=_T("");		
-	//			
-	//			uW=CaculateWeekDay(y,m,d);
-	//			if(uW>=5)
-	//			{
-	//				//!调整到本周五
-	//				d-=uW-5;
-	//			}
-	//			else
-	//			{
-	//				//!调整到上周五
-	//				d-=uW+2;
-	//			}
-	//			//！
-	//			if(d<0)
-	//			{//!
-	//				if(m>1)
-	//				{
-	//					m-=1;
-	//					d=daysOfMonth(y,m)+d;
-	//				}
-	//				else
-	//				{			
-	//					y-=1;
-	//					m=12;
-	//					d=daysOfMonth(y,m)+d;
-	//				}
-	//			}					
-	//			//uW=CaculateWeekDay(y,m,d);
-	//			strName=GetTimeString(y,m,d);
-	//			strName=_T("A")+strName;
-	//			vctList.push_back(strName);
-	//			d-=7;
-	//		}
-	//		break;
-	//	default:
-	//		break;
-	//}	
-	//_ASSERTE(vctList.size());
 	////！用最近一份数据建立比较样本
 	double dFactor,dFactorTmp;
-	CString strSql;
-	////strTmp.Format(_T("%d"),uID);
-	//strSql=_T("select * from ");
-	//strSql+=vctList.at(0);
-	////strSql+=_T(" where id = ")+strTmp;
-	//SQLiteDataReader Reader = sqlite.ExcuteQuery(strSql); 
-	//map<UINT,double> mapList;//id  factor
-	UINT uID,uNumber;
-	//while(Reader.Read()) 
- //   {  
-	//	uID=Reader.GetInt64Value(0);	
-	//	dFactor=Reader.GetFloatValue(3);	
-	//	mapList[uID]=dFactor;
- //   }  
- //   Reader.Close();
-	//！用比较样本 去遍历符合条件的表，记录符合策略的ID；
-	UINT uCount=0;
+	CString strSql;	
+	UINT uID,uNumber;	
+	//！用比较样本 去遍历符合条件的表，记录符合策略的ID；	
 	vector<UINT> vctIDs;	
+	UINT uCount=0;
 	//const map<CString,CString>& mapSrcData,const ConditionItem& cdItem,map<CString,CString>& mapDecData
 	//for(map<UINT,double>::iterator p=mapList.begin();p!=mapList.end();++p)
 	//{//!		
 		//uID=(*p).first;
 		//dFactor=(*p).second;
+	    CString strTime;
 		for(map<CString,CString>::const_iterator pIt=mapSrcData.begin(); pIt!=mapSrcData.end();++pIt)
 		{
 			uID=GetIDByNumber((*pIt).first);
+			strTime=(*pIt).second;//!start time
 			strTmp.Format(_T("%d"),uID);
-			strSql=_T("select * from ");
-			strSql+=_T("A")+(*pIt).second;
-			strSql+=_T(" where id = ")+strTmp;
-			//!
-			SQLiteDataReader Reader = sqlite.ExcuteQuery(strSql);	
-			while(Reader.Read()) 
-			{  	
-				dFactorTmp=Reader.GetFloatValue(3);
-				if(bStateType)//!
-				{
-					if(dFactorTmp < dFactor)
-						uCount++;					
+			uCount=0;
+			BOOL bFind=TRUE;
+			do{
+				bFind=FALSE;
+				strSql=_T("select * from ");
+				strSql+=_T("A")+(*pIt).second;
+				strSql+=_T(" where id = ")+strTmp;
+				//!
+				SQLiteDataReader Reader = sqlite.ExcuteQuery(strSql);	
+				while(Reader.Read()) 
+				{  	
+					if(strTime==(*pIt).second)
+						dFactor==Reader.GetFloatValue(3);
+
+					dFactorTmp=Reader.GetFloatValue(3);
+					if(bStateType)//!
+					{
+						if(dFactorTmp < dFactor)
+							uCount++;	
+						else
+							bFind=FALSE;
+					}
+					else
+					{
+						if(dFactorTmp > dFactor)
+							uCount++;			
+						else
+							bFind=FALSE;
+					}
+					dFactor=dFactorTmp;
+				} 
+				Reader.Close();
+				//!
+				if(bFind)
+				{//!
 				}
-				else
-				{
-					if(dFactorTmp > dFactor)
-						uCount++;			
-				}
-				dFactor=dFactorTmp;
-			} 
-			Reader.Close();
+			}while(!bFind)
 		}
 		if(uCount==uTimeContinue)
 			vctIDs.push_back(uID);
@@ -1339,7 +1266,7 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 	dFactor=0;
 	map<UINT,map<UINT,CHKStockData>> mapFactor2ID2Data;	
 	map<UINT,CString>::iterator p; //id  number
-	for(int i=0;i<6;++i)
+	for(int i=0;i<10;++i)
 	{//!
 		dFactor+=dStep;
 		map<UINT,CHKStockData> mapID2Data;
