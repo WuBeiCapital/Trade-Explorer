@@ -1329,14 +1329,16 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 					dPreFactor=Reader.GetFloatValue(7);
 				} 
 				if(!bFind)//!如果未取到数据
-				{//！
-					vector<CString> vctTimes;
+				{//！向后回溯
+					strTime=CalcTimeString(strTime,FALSE);
+					strTime.Replace(_T("A"),_T(""));
+					/*vector<CString> vctTimes;
 					CalcTimeString(strTime,1,0,vctTimes,FALSE);
 					if(vctTimes.size())
 					{
 						strTime=vctTimes.at(0);
 						strTime.Replace(_T("A"),_T(""));
-					}
+					}*/
 				}
 				Reader.Close();
 			}while(!bFind);			
@@ -1371,14 +1373,16 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 					dCurFactor=Reader2.GetFloatValue(7);
 				}
 				if(!bFind)//!如果未取到数据
-				{//！向后回溯				
-					vector<CString> vctTimes;
+				{//！向前回溯			
+					strTime=CalcTimeString(strTime);
+					strTime.Replace(_T("A"),_T(""));
+				/*	vector<CString> vctTimes;
 					CalcTimeString(strTime,1,0,vctTimes);
 					if(vctTimes.size())
 					{
 						strTime=vctTimes.at(0);
 						strTime.Replace(_T("A"),_T(""));
-					}
+					}*/
 				}
 				Reader2.Close();
 			}while(!bFind);	

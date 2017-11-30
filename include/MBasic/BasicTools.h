@@ -46,6 +46,7 @@ MITC_BASIC_EXT int daysOfMonth(int y,int m);
 MITC_BASIC_EXT UINT CaculateWeekDay(int y,int m, int d);
 MITC_BASIC_EXT CString GetTimeString(int y,int m, int d);
 MITC_BASIC_EXT void SplitTimeString(const CString& strTime,int& y,int& m, int& d);
+MITC_BASIC_EXT CString  CalcTimeString(const CString& strTime,BOOL bFront=TRUE);
 MITC_BASIC_EXT BOOL  CalcTimeString(const CString& strTime,UINT uTimeContinue,UINT uTimePeriod,vector<CString>& vctTimeslist,BOOL bFront=TRUE);//0 Ìì, 1 ÖÜ ,2 ÔÂ
 
 const double NS_MIN_VALUE=1.0e-6;

@@ -80,6 +80,82 @@ UINT CaculateWeekDay(int y,int m, int d)
     //}
 	return iWeek;
 }
+CString  CalcTimeString(const CString& strTime,BOOL bFront)
+{
+	int y,m, d;
+	//int yOrg,mOrg, dOrg;
+	CString strTmp,strName;
+	strTmp=strTime;
+	SplitTimeString(strTmp,y,m,d);
+	UINT uW=6;
+	if(bFront)//时间向前推
+	{//!
+		strTmp=_T("");
+		strName=_T("");		
+		do
+		{//!		
+			if(d>1)
+			{//!
+				d-=1;
+			}
+			else
+			{//!
+				if(m>1)
+				{
+					m-=1;
+					d=daysOfMonth(y,m);
+				}
+				else
+				{			
+					y-=1;
+					m=12;
+					d=daysOfMonth(y,m);
+				}
+			}
+			uW=CaculateWeekDay(y,m,d);
+		}while(uW>5);
+
+		strName=GetTimeString(y,m,d);
+	}
+	else
+	{//！
+		do
+		{//!	
+			d++;
+			if(d<=daysOfMonth(y,m))
+			{//!
+				uW=CaculateWeekDay(y,m,d);
+				if(uW<6)
+				{
+					strName=GetTimeString(y,m,d);
+					strName=_T("A")+strName;
+				}				
+			}
+			else
+			{//!				
+				if(m<12)
+				{
+					m+=1;					
+				}
+				else
+				{
+					m=1;
+					y+=1;
+				}
+				d=1;
+			
+				uW=CaculateWeekDay(y,m,d);
+				if(uW<6)
+				{
+					strName=GetTimeString(y,m,d);
+					strName=_T("A")+strName;
+				}
+			}				
+		}while(uW>5);
+	}
+
+	return strName;
+}
 BOOL  CalcTimeString(const CString& strTime,UINT uTimeContinue,UINT uTimePeriod,vector<CString>& vctTimeslist,BOOL bFront)
 {
 	int y,m, d;
