@@ -298,7 +298,7 @@ BOOL CImportDataDlg::ExcuteQueryTime(const map<CString,CString>& mapSrcData,cons
 	//！
 	UINT uCount=0;
 
-	//!择时条件
+	//!
 	CString strTime;	
 	for(map<CString,CString>::const_iterator pIt=mapSrcData.begin(); pIt!=mapSrcData.end();++pIt)
 	{
@@ -327,25 +327,27 @@ BOOL CImportDataDlg::ExcuteQueryTime(const map<CString,CString>& mapSrcData,cons
 				SQLiteDataReader Reader = sqlite.ExcuteQuery(strSql);	
 				while(Reader.Read())
 				{  	
-					if(strTime==(*pIt).second)
+					if(p==vctTimes.begin())
 						dFactor=Reader.GetFloatValue(3);
-
-					dFactorTmp=Reader.GetFloatValue(3);
-					if(bStateType)//!
-					{
-						if(dFactorTmp < dFactor)
-							uCount++;	
-						else
-							bFind=FALSE;
-					}
 					else
 					{
-						if(dFactorTmp > dFactor)
-							uCount++;			
+						dFactorTmp=Reader.GetFloatValue(3);
+						if(bStateType)//!
+						{
+							if(dFactorTmp < dFactor)
+								uCount++;	
+							else
+								bFind=FALSE;
+						}
 						else
-							bFind=FALSE;
-					}
-					dFactor=dFactorTmp;
+						{
+							if(dFactorTmp > dFactor)
+								uCount++;			
+							else
+								bFind=FALSE;
+						}
+						dFactor=dFactorTmp;
+					}				
 				}	
 				Reader.Close();	
 
@@ -605,7 +607,7 @@ BOOL CImportDataDlg::GetDataA2HK()//
 		//!获取行情数据
 		DailyBar *dbar = nullptr;
 		int count = 0;//,SZSE.000001	
-		ret = gm_md_get_dailybars((const char*)pstr,"2017-01-01", "2017-11-24",&dbar, &count);
+		ret = gm_md_get_dailybars((const char*)pstr,"2017-01-01", "2017-12-02",&dbar, &count);
 		delete pstr;
 		pstr=NULL;
 
@@ -1121,7 +1123,7 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 	//!
 	CString strPath=GetDataPath();
     SQLite sqlite;  
-    // 打开或创建数据库
+    // 打开港股通数据库
     //******************************************************  
     if(!sqlite.Open(strPath))  
     {  
@@ -1143,7 +1145,7 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 
 	Dlg2Data();	
 	//!
-	//！读取列表
+	//！读取港股通列表  已经抽取功能函数
 	double dFactor,dFactorTmp;
 	CString strSql,strNumber;
 	strSql=_T("select * from A2HK");
@@ -1155,19 +1157,20 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 		uID=Reader.GetInt64Value(0);	
 		strNumber=Reader.GetStringValue(2);	
 		mapList[uID]=strNumber;
-    }  
+    }//m_mapHK2Alists
+
 	//!策略 1\dFactor>=0.01; 首次出现指定比例个股，至今
 	dFactor=0.01;
 	double dStep=0.01;	
 	//分解策略////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////
-	//
 	SYSTEMTIME sys; 
 	GetLocalTime(&sys);	
 	int yOrg=sys.wYear,mOrg=sys.wMonth, dOrg=sys.wDay;
 	int y=2017,m=3, d=17,uW=0;
 	vector<CString> vctList;
-	CString strTmp=_T(""),strName=_T("");			
+	CString strTmp=_T(""),strName=_T("");
+	//!建立港股通数据有效列表(包含起点时间) 可以抽取功能函数
 	do
 	{//!		
 		if(d<=daysOfMonth(y,m))
@@ -1226,7 +1229,7 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 		}
 	}while(true);
 
-	//!循环搜索符合策略的个股;
+	//!循环搜索数据库中符合策略的个股--港股通数据库
 	dFactor=0;
 	map<UINT,map<UINT,CHKStockData>> mapFactor2ID2Data;	
 	map<UINT,CString>::iterator p; //id  number
@@ -1281,12 +1284,11 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////	
 	//// 关闭数据库  
-    sqlite.Close(); 	
-	
-	//!打开新数据
+    sqlite.Close();
+
+	//!打开行情数据库
 	strPath=GetDataHistoryPath();//_T("D:\\AHistory2017.db");
 	SQLite sqlite2; 
-    // 打开或创建数据库
     //******************************************************  
     if(!sqlite2.Open(strPath))  
     {  
@@ -1296,25 +1298,25 @@ BOOL CImportDataDlg::Anasylis_factor()//!
         return 0;  
     }
 	////!获取行情数据
-	CString strLastTime=_T("20171124");
+	CString strLastTime=_T("20171201");
 	//map<UINT,map<UINT,CHKStockData>> mapFactor2ID2Data;	
 	map<CString,CString>  mapSrcData;
 	map<CString,CString>  mapDecData;
 	ConditionItem cdItem;
-	cdItem.m_uContinueCount=5;
-	cdItem.m_uTimeType=0;
+	cdItem.m_uContinueCount=3;
+	cdItem.m_uTimeType=1;
 	cdItem.m_uTypeUporLow=1;
 	for(map<UINT,map<UINT,CHKStockData>>::iterator pIt=mapFactor2ID2Data.begin(); pIt!=mapFactor2ID2Data.end();++pIt)
-	{//!
-		//
+	{//!	
 		map<UINT,CHKStockData>  piterator=(*pIt).second;
 		for(map<UINT,CHKStockData>::iterator p=(piterator).begin(); p!=(piterator).end();++p)
 		{		
-			CHKStockData tmp=(*p).second;									
+			CHKStockData tmp=(*p).second;
+			//获取个股达到策略要求起点行情数据
 			double dPreValue=0,dPreFactor=0;
 			BOOL bFind=FALSE;
-			CString strTime=tmp.GetTime();			
-			do{				
+			CString strTime=tmp.GetTime();
+			do{
 				strTmp=_T("A")+tmp.GetNumber();
 				strSql=_T("select * from ")+strTmp;
 				strSql+=_T(" where data = ")+strTime;
@@ -1328,10 +1330,12 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 					dPreValue=dTmp/dTmp2;
 					dPreFactor=Reader.GetFloatValue(7);
 				} 
-				if(!bFind)//!如果未取到数据
-				{//！向后回溯
-					strTime=CalcTimeString(strTime,FALSE);
+				if(!bFind)//!如果未取到行情数据
+				{//！向前回溯 ，放假或者停牌，数据承前
+					strTime=CalcTimeString(strTime);
 					strTime.Replace(_T("A"),_T(""));
+					if(strTime.IsEmpty())//!行情数据库不完整
+						bFind=TRUE;
 					/*vector<CString> vctTimes;
 					CalcTimeString(strTime,1,0,vctTimes,FALSE);
 					if(vctTimes.size())
@@ -1343,19 +1347,21 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 				Reader.Close();
 			}while(!bFind);			
 			
+			//获取个股达到策略要求终点行情数据
 			bFind=FALSE;
 			double dCurValue=0,dCurFactor=0;
-			strTime=strLastTime;
-			//!增加择时
-			//!mapSrcData 查询个股（A股编码、查询起点时间）自某一时间点后，首次出现指定条件的时间节点;如果没有满足条件的就没有；
-			mapSrcData.clear();
-			mapDecData.clear();
-			mapSrcData[tmp.GetNumber()]=tmp.GetTime();
-			ExcuteQueryTime(mapSrcData,cdItem,mapDecData);
-			map<CString,CString>::iterator pIter=mapDecData.find(tmp.GetNumber());
-			if(pIter!=mapDecData.end())
-				strTime=(*pIter).second;
-				
+			strTime=strLastTime;			
+			//!增加择时 选择性条件
+			{
+				//!mapSrcData 查询个股（A股编码、查询起点时间）自某一时间点后，首次出现指定条件的时间节点;如果没有满足条件的就没有；
+				mapSrcData.clear();
+				mapDecData.clear();
+				mapSrcData[tmp.GetNumber()]=tmp.GetTime();
+				ExcuteQueryTime(mapSrcData,cdItem,mapDecData);
+				map<CString,CString>::iterator pIter=mapDecData.find(tmp.GetNumber());
+				if(pIter!=mapDecData.end())
+					strTime=(*pIter).second;
+			}				
 			do{
 				strTmp=_T("A")+tmp.GetNumber();
 				strSql=_T("select * from ")+strTmp;
@@ -1376,6 +1382,8 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 				{//！向前回溯			
 					strTime=CalcTimeString(strTime);
 					strTime.Replace(_T("A"),_T(""));
+					if(strTime.IsEmpty())//!行情数据库不完整
+						bFind=TRUE;
 				/*	vector<CString> vctTimes;
 					CalcTimeString(strTime,1,0,vctTimes);
 					if(vctTimes.size())
@@ -1395,7 +1403,7 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 		mapFactor2ID2Data[(*pIt).first]=piterator;
 	}	
 	//!输出符合策略的数据集；	
-	strName=GetTimeString(sys.wYear,sys.wMonth,sys.wDay);	
+	strName=GetTimeString(sys.wYear,sys.wMonth,sys.wDay);
 	strName=_T("北上资金持股数据统计_比例")+strLastTime;
 	////!
 	CString strFileName=strName;
@@ -1508,11 +1516,11 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 		pCXLControl->SetXL(0,0,strTmp);
 
 		pCXLControl->SetXL(nExcelRow,0,_T("持股比例"));
-		pCXLControl->SetXL(nExcelRow,1,_T("首次达到比例日期"));
-		pCXLControl->SetXL(nExcelRow,2,_T("最大涨幅"));
-		pCXLControl->SetXL(nExcelRow,3,_T("最大跌幅"));	
-		pCXLControl->SetXL(nExcelRow,4,_T("胜率"));
-		pCXLControl->SetXL(nExcelRow++,5,_T("均涨幅"));
+		//pCXLControl->SetXL(nExcelRow,1,_T("首次达到比例日期"));
+		pCXLControl->SetXL(nExcelRow,1,_T("最大涨幅"));
+		pCXLControl->SetXL(nExcelRow,2,_T("最大跌幅"));	
+		pCXLControl->SetXL(nExcelRow,3,_T("胜率"));
+		pCXLControl->SetXL(nExcelRow++,4,_T("均涨幅"));
 		CString strTmp;
 		for(map<UINT,FactorData>::iterator p=mapFactorData.begin(); p!=mapFactorData.end();++p)
 		{//!			
@@ -1520,24 +1528,22 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 			strTmp.Format(_T("%d"),(int)(tmp.m_dFactorSample));//
 			strTmp+=_T("%");
 			pCXLControl->SetXL(nExcelRow,0,strTmp);//_T("样本比例"));
-
-			pCXLControl->SetXL(nExcelRow,1,tmp.m_strFirstTime);//_T("样本比例"));
-
+			
 			strTmp.Format(_T("%.2f"),tmp.m_dMaxUp*100);//
 			strTmp+=_T("%");
-			pCXLControl->SetXL(nExcelRow,2,strTmp);//_T("最大涨幅")
+			pCXLControl->SetXL(nExcelRow,1,strTmp);//_T("最大涨幅")
 	
 			strTmp.Format(_T("%.2f"),tmp.m_dMaxLow*100);//
 			strTmp+=_T("%");
-			pCXLControl->SetXL(nExcelRow,3,strTmp);//_T("最大跌幅")
+			pCXLControl->SetXL(nExcelRow,2,strTmp);//_T("最大跌幅")
 			//!实际比例
 			strTmp.Format(_T("%.2f"),tmp.m_dFactorWF*100);//_T("胜率")
 			strTmp+=_T("%");
-			pCXLControl->SetXL(nExcelRow,4,strTmp);
+			pCXLControl->SetXL(nExcelRow,3,strTmp);
 			//!涨幅
 			strTmp.Format(_T("%.2f"),tmp.m_dAvg*100);
 			strTmp+=_T("%");
-			pCXLControl->SetXL(nExcelRow++,5,strTmp);		
+			pCXLControl->SetXL(nExcelRow++,4,strTmp);		
 		}
 		pCXLControl->SetCellWidth(0,5,10);//设置列宽ui 
 		pCXLControl->SetHoriAlign(1,0,nExcelRow,5,1);//设置单元格水平对齐方式h

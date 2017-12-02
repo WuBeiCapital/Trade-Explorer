@@ -82,11 +82,23 @@ UINT CaculateWeekDay(int y,int m, int d)
 }
 CString  CalcTimeString(const CString& strTime,BOOL bFront)
 {
+	SYSTEMTIME sys; 
+	GetLocalTime(&sys);	
+	vector<CString> vctList;
+	int yEnd=sys.wYear,mEnd=12/*sys.wMonth*/, dEnd=1/*sys.wDay*/;
+	int yStart=2017,mStart=1, dStart=1;
+
 	int y,m, d;
-	//int yOrg,mOrg, dOrg;
+	//int yEnd,mEnd, dEnd;
 	CString strTmp,strName;
 	strTmp=strTime;
 	SplitTimeString(strTmp,y,m,d);
+	
+	if((y>yEnd)||(y==yEnd && m>mEnd) ||(y==yEnd && m==mEnd && d>dEnd/*dEnd*/))
+	{						
+		return _T("");
+	}
+
 	UINT uW=6;
 	if(bFront)//时间向前推
 	{//!
@@ -113,8 +125,12 @@ CString  CalcTimeString(const CString& strTime,BOOL bFront)
 				}
 			}
 			uW=CaculateWeekDay(y,m,d);
+			
+			if((y<yStart)||(y==yStart && m<mStart) ||(y==yStart && m==mStart && d<dStart/*dEnd*/))
+			{						
+				return _T("");
+			}
 		}while(uW>5);
-
 		strName=GetTimeString(y,m,d);
 	}
 	else
@@ -150,7 +166,11 @@ CString  CalcTimeString(const CString& strTime,BOOL bFront)
 					strName=GetTimeString(y,m,d);
 					strName=_T("A")+strName;
 				}
-			}				
+			}
+			if((y>yEnd)||(y==yEnd && m>mEnd) ||(y==yEnd && m==mEnd && d>dEnd/*dEnd*/))
+			{						
+				return _T("");
+			}
 		}while(uW>5);
 	}
 
@@ -158,15 +178,20 @@ CString  CalcTimeString(const CString& strTime,BOOL bFront)
 }
 BOOL  CalcTimeString(const CString& strTime,UINT uTimeContinue,UINT uTimePeriod,vector<CString>& vctTimeslist,BOOL bFront)
 {
+	int yStart=2017,mStart=3, dStart=17;
 	int y,m, d;
 	SYSTEMTIME sys; 
 	GetLocalTime(&sys);	
 	vector<CString> vctList;
-	int yOrg=sys.wYear,mOrg=sys.wMonth, dOrg=sys.wDay;
+	int yEnd=sys.wYear,mEnd=/*sys.wMonth*/12, dEnd=/*sys.wDay*/1;
 
 	CString strTmp,strName;
 	strTmp=strTime;
 	SplitTimeString(strTmp,y,m,d);
+	if((y>yEnd)||(y==yEnd && m>mEnd) ||(y==yEnd && m==mEnd && d>dEnd))
+	{						
+		return FALSE;
+	}
 	//!
 	switch(uTimePeriod)
 	{
@@ -205,7 +230,9 @@ BOOL  CalcTimeString(const CString& strTime,UINT uTimeContinue,UINT uTimePeriod,
 
 					strName=GetTimeString(y,m,d);
 					strName=_T("A")+strName;
-					vctTimeslist.push_back(strName);
+					vctTimeslist.push_back(strName);					
+					if((y<yStart)||(y==yStart && m<mStart) ||(y==yStart && m==mStart && d<dStart))
+						return FALSE;
 				}
 			}
 			else
@@ -249,7 +276,7 @@ BOOL  CalcTimeString(const CString& strTime,UINT uTimeContinue,UINT uTimePeriod,
 								vctTimeslist.push_back(strName);
 							}
 						}
-						if((y>yOrg)||(y==yOrg && m>mOrg) ||(y==yOrg && m==mOrg && d>24/*dOrg*/))
+						if((y>yEnd)||(y==yEnd && m>mEnd) ||(y==yEnd && m==mEnd && d>dEnd/*dEnd*/))
 						{						
 							return FALSE;
 						}
@@ -299,6 +326,8 @@ BOOL  CalcTimeString(const CString& strTime,UINT uTimeContinue,UINT uTimePeriod,
 					strName=_T("A")+strName;	
 					vctTimeslist.push_back(strName);
 					d-=7;
+					if((y<yStart)||(y==yStart && m<mStart) ||(y==yStart && m==mStart && d<dStart))
+					return FALSE;				
 				}
 			}
 			else
@@ -344,15 +373,19 @@ BOOL  CalcTimeString(const CString& strTime,UINT uTimeContinue,UINT uTimePeriod,
 							y+=1;							
 						}
 						else
-						{							
-							m+=1;
+						{
 							d=d-daysOfMonth(y,m);
+							m+=1;
 						}
 					}
 					strName=GetTimeString(y,m,d);
 					strName=_T("A")+strName;	
 					vctTimeslist.push_back(strName);
 					d+=7;
+					if((y>yEnd)||(y==yEnd && m>mEnd) ||(y==yEnd && m==mEnd && d>dEnd/*dEnd*/))
+					{						
+						return FALSE;
+					}
 				}
 			}
 			break;	
