@@ -8,6 +8,8 @@ public:
 	BOOL IsEmpty() const;
 	void SetTime(const CString& strTime);
 	CString GetTime() const;
+		void SetLastTime(const CString& strTime);
+	CString GetLastTime() const;
 	void SetCode(DWORD dCode);
 	DWORD GetCode() const;
 	void SetName(const CString& strName);
@@ -23,6 +25,7 @@ public:
 	double GetValue() const;
 protected:
 	CString m_strTime;
+	CString m_strLastTime;
 	DWORD m_uCode;
 	CString m_strName;
 	DWORD  m_dCount;

@@ -29,6 +29,15 @@ BOOL CHKStockData::IsEmpty() const
 	{
 		return m_strTime;
 	}
+	void CHKStockData::SetLastTime(const CString& strTime)
+		{
+		m_strLastTime=strTime;
+	}
+	CString CHKStockData::GetLastTime() const
+	{
+		return m_strLastTime;
+	}
+
 	void CHKStockData::SetCode(DWORD dCode)
 	{
 		m_uCode=dCode;

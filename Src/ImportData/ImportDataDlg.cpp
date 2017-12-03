@@ -1145,6 +1145,11 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 
 	Dlg2Data();	
 	//!
+	ConditionItem cdItem;
+	cdItem.m_uContinueCount=3;
+	cdItem.m_uTimeType=1;
+	cdItem.m_uTypeUporLow=1;
+	//!
 	//！读取港股通列表  已经抽取功能函数
 	double dFactor,dFactorTmp;
 	CString strSql,strNumber;
@@ -1302,10 +1307,6 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 	//map<UINT,map<UINT,CHKStockData>> mapFactor2ID2Data;	
 	map<CString,CString>  mapSrcData;
 	map<CString,CString>  mapDecData;
-	ConditionItem cdItem;
-	cdItem.m_uContinueCount=3;
-	cdItem.m_uTimeType=1;
-	cdItem.m_uTypeUporLow=1;
 	for(map<UINT,map<UINT,CHKStockData>>::iterator pIt=mapFactor2ID2Data.begin(); pIt!=mapFactor2ID2Data.end();++pIt)
 	{//!	
 		map<UINT,CHKStockData>  piterator=(*pIt).second;
@@ -1361,6 +1362,7 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 				map<CString,CString>::iterator pIter=mapDecData.find(tmp.GetNumber());
 				if(pIter!=mapDecData.end())
 					strTime=(*pIter).second;
+				tmp.SetLastTime(strTime);
 			}				
 			do{
 				strTmp=_T("A")+tmp.GetNumber();
@@ -1423,7 +1425,8 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 		pCXLControl->SetXL(nExcelRow,2,_T("名称"));
 		pCXLControl->SetXL(nExcelRow,3,_T("首次达到比例日期"));
 		pCXLControl->SetXL(nExcelRow,4,_T("实际比例"));
-		pCXLControl->SetXL(nExcelRow++,5,_T("涨幅"));
+		pCXLControl->SetXL(nExcelRow,5,_T("结算日期"));
+		pCXLControl->SetXL(nExcelRow++,6,_T("涨幅"));
 
 		for(map<UINT,map<UINT,CHKStockData>>::iterator p=mapFactor2ID2Data.begin(); p!=mapFactor2ID2Data.end();++p)
 		{//!			
@@ -1446,16 +1449,19 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 				strTmp.Format(_T("%.2f"),tmp.GetFactor()*100);
 				strTmp+=_T("%");
 				pCXLControl->SetXL(nExcelRow,4,strTmp);
+				//!结算日期
+				pCXLControl->SetXL(nExcelRow,5,tmp.GetLastTime());
 				//!涨幅
 				strTmp.Format(_T("%.2f"),tmp.GetValue()*100);
-				pCXLControl->SetXL(nExcelRow++,5,strTmp);		
+				pCXLControl->SetXL(nExcelRow++,6,strTmp);		
 			}		
 		}		
-		pCXLControl->SetCellWidth(0,5,10);//设置列宽
-		pCXLControl->SetHoriAlign(1,0,5,4,1);//设置单元格水平对齐方式
-		pCXLControl->SetFonts(2,0,nExcelRow,5,12,NULL,1,FALSE);//设置字体
-		pCXLControl->SetFonts(0,0,0,5,16,NULL,1,FALSE);//设置字体
-		pCXLControl->SetFonts(1,0,1,5,12,NULL,1,FALSE);//设置字体
+		nCol=6;
+		pCXLControl->SetCellWidth(0,nCol,10);//设置列宽
+		pCXLControl->SetHoriAlign(1,0,nCol,4,1);//设置单元格水平对齐方式
+		pCXLControl->SetFonts(2,0,nExcelRow,nCol,12,NULL,1,FALSE);//设置字体
+		pCXLControl->SetFonts(0,0,0,nCol,16,NULL,1,FALSE);//设置字体
+		pCXLControl->SetFonts(1,0,1,nCol,12,NULL,1,FALSE);//设置字体
 		//if(bStateType)
 		//	pCXLControl->SetCellColor(1,0,1,4,3);//设置单位颜色为绿色 0无 1 黑 2白3红 4绿
 		//else
@@ -1516,7 +1522,6 @@ BOOL CImportDataDlg::Anasylis_factor()//!
 		pCXLControl->SetXL(0,0,strTmp);
 
 		pCXLControl->SetXL(nExcelRow,0,_T("持股比例"));
-		//pCXLControl->SetXL(nExcelRow,1,_T("首次达到比例日期"));
 		pCXLControl->SetXL(nExcelRow,1,_T("最大涨幅"));
 		pCXLControl->SetXL(nExcelRow,2,_T("最大跌幅"));	
 		pCXLControl->SetXL(nExcelRow,3,_T("胜率"));
