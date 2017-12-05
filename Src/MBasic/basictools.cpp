@@ -407,7 +407,7 @@ void SplitTimeString(const CString& strTime,int& y,int& m, int& d)
 	d=StrToInt(strName);
 }
 
-CString GetTimeString(int y,int m, int d)
+CString GetTimeString(int y,int m, int d,const CString& strSplit)
 {
 	CString strTmp,strName;
 	strTmp.Format(_T("%d"),y);
@@ -420,7 +420,7 @@ CString GetTimeString(int y,int m, int d)
 	{
 		strTmp.Format(_T("%d"),m);
 	}
-	strName+=strTmp;
+	strName+=strSplit+strTmp;
 
 	if(d<10)
 	{
@@ -430,7 +430,7 @@ CString GetTimeString(int y,int m, int d)
 	{
 		strTmp.Format(_T("%d"),d);
 	}
-	strName+=strTmp;
+	strName+=strSplit+strTmp;
 
 	return strName;
 }

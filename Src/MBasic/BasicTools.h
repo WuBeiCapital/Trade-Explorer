@@ -44,7 +44,7 @@ MITC_BASIC_EXT const wchar_t* Utf8ToWchar(const char *pStr);
 MITC_BASIC_EXT bool isLeap(int y);//判断是否是闰年
 MITC_BASIC_EXT int daysOfMonth(int y,int m);
 MITC_BASIC_EXT UINT CaculateWeekDay(int y,int m, int d);
-MITC_BASIC_EXT CString GetTimeString(int y,int m, int d);
+MITC_BASIC_EXT CString GetTimeString(int y,int m, int d, const CString& strSplit=_T(""));
 MITC_BASIC_EXT void SplitTimeString(const CString& strTime,int& y,int& m, int& d);
 MITC_BASIC_EXT CString  CalcTimeString(const CString& strTime,BOOL bFront=TRUE);
 MITC_BASIC_EXT BOOL  CalcTimeString(const CString& strTime,UINT uTimeContinue,UINT uTimePeriod,vector<CString>& vctTimeslist,BOOL bFront=TRUE);//0 天, 1 周 ,2 月
