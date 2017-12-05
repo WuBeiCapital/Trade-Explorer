@@ -32,8 +32,8 @@ public:
 protected:
 	HICON m_hIcon;
 
-	CString GetDataPath();
-	CString GetDataHistoryPath();
+	CString GetHKDataPath();
+	CString GetAHistoryDataPath();
 	BOOL Anasylis_factor();
 		
 	// 產生的訊息對應函式
@@ -45,7 +45,7 @@ protected:
 	
 	map<UINT,CString> m_mapHK2Alists;
 public:
-	BOOL GetDataA2HK();
+	BOOL GetHistoryDataHK2A();
 	BOOL Select();
 	BOOL CreateA2HKList();
 	

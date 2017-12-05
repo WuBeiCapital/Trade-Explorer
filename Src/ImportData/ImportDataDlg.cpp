@@ -58,7 +58,7 @@ CImportDataDlg::CImportDataDlg(CWnd* pParent /*=NULL*/)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
-	CString strPath=GetDataHistoryPath();
+	CString strPath=GetAHistoryDataPath();
 	SQLite sqlite; 
     // 打开或创建数据库
     //******************************************************  
@@ -210,7 +210,7 @@ void CImportDataDlg::OnBnClickedBtnImport()
 void CImportDataDlg::OnBnUpdateA2HKData()
 {
 	// TODO: Add your control notification handler code here
-	GetDataA2HK();
+	GetHistoryDataHK2A();
 }
 
 void CImportDataDlg::OnBnCreateA2HKList()
@@ -244,7 +244,7 @@ UINT CImportDataDlg::GetIDByNumber(const CString& strNumber) const//A2HK
 BOOL CImportDataDlg::ExcuteQueryTime(const map<CString,CString>& mapSrcData,const ConditionItem& cdItem,map<CString,CString>& mapDecData)
 {//!
 	//!
-	CString strPath=GetDataPath();
+	CString strPath=GetHKDataPath();
     SQLite sqlite;  
     // 打开或创建数据库
     //******************************************************  
@@ -510,7 +510,7 @@ void CImportDataDlg::Dlg2Data()
 	//!
 	m_uTime=_tstoi(strText);
 }
-CString CImportDataDlg::GetDataPath()
+CString CImportDataDlg::GetHKDataPath()
 {
 	CString strPath=GetSystemPath();
 	int index=strPath.Find(_T("Bin"));
@@ -530,7 +530,7 @@ CString CImportDataDlg::GetDataPath()
 	}
 	return strPath;
 }
-CString CImportDataDlg::GetDataHistoryPath()
+CString CImportDataDlg::GetAHistoryDataPath()
 {
 	CString strPath=GetSystemPath();
 	int index=strPath.Find(_T("Bin"));
@@ -552,7 +552,7 @@ CString CImportDataDlg::GetDataHistoryPath()
 	return strPath;
 }
 
-BOOL CImportDataDlg::GetDataA2HK()//
+BOOL CImportDataDlg::GetHistoryDataHK2A()//
 {//!
 	int ret;
     ret = gm_login("13480922739", "a7612006");
@@ -562,7 +562,7 @@ BOOL CImportDataDlg::GetDataA2HK()//
 		return ret;
 	}
 
-	CString strPath=GetDataHistoryPath();//_T("D:\\AHistory2017.db");
+	CString strPath=GetAHistoryDataPath();//_T("D:\\AHistory2017.db");
 	SQLite sqlite; 
     // 打开或创建数据库
     //******************************************************  
@@ -588,6 +588,11 @@ BOOL CImportDataDlg::GetDataA2HK()//
 		vctA2HKlist.push_back(strNumber);
     }  
     Reader.Close();
+	//!	
+	SYSTEMTIME sys; 
+	GetLocalTime(&sys);	
+	int yOrg=sys.wYear,mOrg=sys.wMonth, dOrg=sys.wDay;
+	CString strLastTime=GetTimeString(yOrg,mOrg,dOrg,_T("-"));
 	for(vector<CString>::iterator p=vctA2HKlist.begin();p!=vctA2HKlist.end();++p)
 	{
 		//!名称转换
@@ -604,12 +609,19 @@ BOOL CImportDataDlg::GetDataA2HK()//
 		char* pstr= new char[strsize]; //分配空间;
 		size_t sz=0;
 		wcstombs_s(&sz,pstr,strsize,strName,_TRUNCATE);
+		//!
+		const  size_t strsizeTime=(strLastTime.GetLength()+1)*2; // 宽字符的长度;
+		char* pstrTime= new char[strsizeTime]; //分配空间;
+		//size_t sz=0;
+		wcstombs_s(&sz,pstrTime,strsizeTime,strLastTime,_TRUNCATE);
 		//!获取行情数据
 		DailyBar *dbar = nullptr;
 		int count = 0;//,SZSE.000001	
-		ret = gm_md_get_dailybars((const char*)pstr,"2017-01-01", "2017-12-02",&dbar, &count);
+		ret = gm_md_get_dailybars((const char*)pstr,"2017-01-01", pstrTime,&dbar, &count);
 		delete pstr;
 		pstr=NULL;
+		delete pstrTime;
+		pstrTime=NULL;
 
 		DailyBar dbData;
 		vector<DailyBar> vctDailyBars;
@@ -699,7 +711,7 @@ BOOL CImportDataDlg::GetDataA2HK()//
 	//gm_md_set_login_callback(on_login);
 
 	//ret = gm_md_init(MD_MODE_LIVE, "SHSE.*.bar.*");
-
+	AfxMessageBox(_T("数据更新完毕!"));
     //初始化失败，退出。
 	if (ret)
     {
@@ -716,7 +728,7 @@ BOOL CImportDataDlg::GetDataA2HK()//
 BOOL CImportDataDlg::Select()//! 
 {//!
 	//!
-	CString strPath=GetDataPath();
+	CString strPath=GetHKDataPath();
     SQLite sqlite;  
     // 打开或创建数据库
     //******************************************************  
@@ -867,19 +879,19 @@ BOOL CImportDataDlg::Select()//!
 	strSql+=vctList.at(0);
 	//strSql+=_T(" where id = ")+strTmp;
 	SQLiteDataReader Reader = sqlite.ExcuteQuery(strSql); 
-	map<UINT,double> mapList;//id  factor
+	map<UINT,double> mapID2Factor;//id  factor
 	UINT uID,uNumber;
 	while(Reader.Read()) 
     {  
 		uID=Reader.GetInt64Value(0);	
 		dFactor=Reader.GetFloatValue(3);	
-		mapList[uID]=dFactor;
+		mapID2Factor[uID]=dFactor;
     }  
     Reader.Close();
 	//！用比较样本 去遍历符合条件的表，记录符合策略的ID；
 	UINT uCount=0;
 	vector<UINT> vctIDs;	
-	for(map<UINT,double>::iterator p=mapList.begin();p!=mapList.end();++p)
+	for(map<UINT,double>::iterator p=mapID2Factor.begin();p!=mapID2Factor.end();++p)
 	{//!
 		uCount=0;
 		uID=(*p).first;
@@ -1121,7 +1133,7 @@ void CImportDataDlg::OnCbnSelchangeCmbState()
 BOOL CImportDataDlg::Anasylis_factor()//! 
 {//!
 	//!
-	CString strPath=GetDataPath();
+	CString strPath=GetHKDataPath();
     SQLite sqlite;  
     // 打开港股通数据库
     //******************************************************  
@@ -1292,7 +1304,7 @@ BOOL CImportDataDlg::Anasylis_factor()//!
     sqlite.Close();
 
 	//!打开行情数据库
-	strPath=GetDataHistoryPath();//_T("D:\\AHistory2017.db");
+	strPath=GetAHistoryDataPath();//_T("D:\\AHistory2017.db");
 	SQLite sqlite2; 
     //******************************************************  
     if(!sqlite2.Open(strPath))  
