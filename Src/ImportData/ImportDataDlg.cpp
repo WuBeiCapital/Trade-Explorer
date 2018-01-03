@@ -908,13 +908,13 @@ BOOL CImportDataDlg::Select()//!
 			{  	
 				dFactorTmp=Reader.GetFloatValue(3);
 				if(bStateType)//!
-				{
-					if(dFactorTmp < dFactor)
+				{					
+					if(DblLE(dFactorTmp,dFactor))
 						uCount++;					
 				}
 				else
 				{
-					if(dFactorTmp > dFactor)
+					if(DblGE(dFactorTmp,dFactor))
 						uCount++;			
 				}
 				dFactor=dFactorTmp;
