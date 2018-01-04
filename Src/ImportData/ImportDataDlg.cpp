@@ -589,6 +589,9 @@ BOOL CImportDataDlg::GetHistoryDataHK2A()//
     }  
     Reader.Close();
 	//!	
+	//IniFileReadWrite iniRW(GetSystemPath() + L"\\version.txt");
+	//iniRW.WriteValue(L"VersionInfo",L"CurrentVersion",strVersionDetail);
+
 	SYSTEMTIME sys; 
 	GetLocalTime(&sys);	
 	int yOrg=sys.wYear,mOrg=sys.wMonth, dOrg=sys.wDay;
@@ -907,16 +910,32 @@ BOOL CImportDataDlg::Select()//!
 			while(Reader.Read()) 
 			{  	
 				dFactorTmp=Reader.GetFloatValue(3);
-				if(bStateType)//!
-				{					
-					if(DblLE(dFactorTmp,dFactor))
-						uCount++;					
-				}
-				else
+				//if(uTimeContinue==1)
 				{
-					if(DblGE(dFactorTmp,dFactor))
-						uCount++;			
+					if(bStateType)//!
+					{
+						if(dFactorTmp < dFactor)
+							uCount++;					
+					}
+					else
+					{
+						if(dFactorTmp > dFactor)
+							uCount++;
+					}
 				}
+				//else
+				//{
+				//	if(bStateType)//!
+				//	{					
+				//		if(DblLE(dFactorTmp,dFactor))
+				//			uCount++;					
+				//	}
+				//	else
+				//	{
+				//		if(DblGE(dFactorTmp,dFactor))
+				//			uCount++;			
+				//	}
+				//}			
 				dFactor=dFactorTmp;
 			} 
 			Reader.Close();
